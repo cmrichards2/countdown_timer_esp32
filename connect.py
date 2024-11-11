@@ -34,8 +34,6 @@ async def connect_and_send_wifi_credentials(ssid: str, password: str):
     async with BleakClient(esp32_device.address) as client:
         print(f"Connected to {ESP32_DEVICE_NAME}")
 
-        client.mtu_size
-
         # Subscribe to notifications
         await client.start_notify(WIFI_STATUS_UUID, notification_handler)
 
