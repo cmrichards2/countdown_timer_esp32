@@ -1,3 +1,6 @@
+# This script is used to connect to the ESP32 device and send the WiFi credentials.
+# It simulates what the mobile application would do when first setting up the device.
+
 import asyncio
 from bleak import BleakClient, BleakScanner
 

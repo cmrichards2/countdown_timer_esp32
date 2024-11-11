@@ -27,6 +27,7 @@ To connect to the ESP32 and send WiFi credentials over bluetooth (BLE), run:
 ```
 python3 connect.py
 ```
+This simulates what the mobile application would do when the user is first setting up the device.
 
 
 ## Notes

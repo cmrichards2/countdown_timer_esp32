@@ -5,8 +5,8 @@ from wifi_connection import WifiConnection
 
 # This application class is the main entry point for the application.
 # It handles entering pairing mode, connecting to WiFi, and starting the main application loop.
+
 class Application:
-    # Duration in milliseconds that the switch must be held to trigger factory reset (resetting wifi credentials)
     FACTORY_RESET_DURATION_MS = 1000
 
     def __init__(self, bluetooth_name = "ESP32_Device"):
@@ -16,14 +16,13 @@ class Application:
         self.ble_device = None
     
     def start(self):
-        if self.wifi.is_connected() or (self.wifi.load_credentials() and self.wifi.connect()):
-            print("Connected to WiFi")
-            self.start_main_loop()
-        else:
-            print("No stored credentials or connection failed")
-            self.enter_paring_mode()
-
-        self.start()
+        while True:
+            if self.wifi.is_connected() or (self.wifi.load_credentials() and self.wifi.connect()):
+                print("Connected to WiFi")
+                self.start_main_loop()
+            else:
+                print("No stored credentials or connection failed")
+                self.enter_pairing_mode()
 
     # When the button is held for the factory reset duration, the WiFi credentials are reset which
     # will make the device enter pairing mode again.
@@ -41,13 +40,24 @@ class Application:
                 print("Wifi connection lost, entering pairing mode")
                 break
 
-    def enter_paring_mode(self):
+    def enter_pairing_mode(self):
         self.ble_device = BLEDevice(self.bluetooth_name, self.handle_wifi_credentials)
         self.ble_device.await_credentials();
         self.ble_device.disconnect()
         self.ble_device = None
 
     def handle_wifi_credentials(self, wifi_ssid, wifi_pass, notify_wifi_status):
+        """
+        Handle WiFi credentials received from BLE device.
+        
+        Args:
+          wifi_ssid (str): The WiFi network SSID
+          wifi_pass (str): The WiFi password
+          notify_wifi_status (callable): Callback to notify status changes
+      
+        Returns:
+            None
+        """
         notify_wifi_status(b"CONNECTING")
         
         if self.wifi.connect(wifi_ssid, wifi_pass):
