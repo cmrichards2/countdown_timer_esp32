@@ -13,14 +13,18 @@ class BLEDevice:
         # Define UUIDs and characteristics for Wi-Fi credentials
         SERVICE_UUID = ubluetooth.UUID("0000180F-0000-1000-8000-00805F9B34FB")
         WIFI_CREDENTIALS_UUID = ubluetooth.UUID("00002A1A-0000-1000-8000-00805F9B34FB")
+        WIFI_STATUS_UUID = ubluetooth.UUID("00002A1B-0000-1000-8000-00805F9B34FB")  # New UUID for status
 
         self.ble.config(gap_name="ESP32_Device")
 
         self.service = (
             SERVICE_UUID, 
-            ((WIFI_CREDENTIALS_UUID, ubluetooth.FLAG_WRITE),)
+            (
+                (WIFI_CREDENTIALS_UUID, ubluetooth.FLAG_WRITE),
+                (WIFI_STATUS_UUID, ubluetooth.FLAG_NOTIFY),  # New characteristic
+            )
         )
-        ((self.characteristic_handle,),) = self.ble.gatts_register_services((self.service,))
+        ((self.characteristic_handle, self.status_handle),) = self.ble.gatts_register_services((self.service,))
         
         self.start_advertising()
 
@@ -69,12 +73,32 @@ class BLEDevice:
 
     def connect_to_wifi(self):
         if self.wifi_ssid and self.wifi_pass:
-            self.wlan = network.WLAN(network.STA_IF)
-            self.wlan.active(True)
-            self.wlan.connect(self.wifi_ssid, self.wifi_pass)
-            while not self.wlan.isconnected():
-                time.sleep(1)
-            print("Connected to WiFi:", self.wlan.ifconfig())
+            try:
+                self.wlan = network.WLAN(network.STA_IF)
+                self.wlan.active(True)
+                # Send "connecting" status
+                self.ble.gatts_notify(0, self.status_handle, b"CONNECTING")
+                
+                self.wlan.connect(self.wifi_ssid, self.wifi_pass)
+                
+                # Wait for connection with timeout
+                retry_count = 0
+                while not self.wlan.isconnected() and retry_count < 10:
+                    time.sleep(1)
+                    retry_count += 1
+                
+                if self.wlan.isconnected():
+                    print("Connected to WiFi:", self.wlan.ifconfig())
+                    # Send success status
+                    self.ble.gatts_notify(0, self.status_handle, b"CONNECTED")
+                else:
+                    print("Failed to connect to WiFi")
+                    # Send failure status
+                    self.ble.gatts_notify(0, self.status_handle, b"FAILED")
+            except Exception as e:
+                print(f"Error connecting to WiFi: {e}")
+                # Send error status
+                self.ble.gatts_notify(0, self.status_handle, f"ERROR:{str(e)}".encode())
 
     def ping_for_wifi_credentials(self):
         if self.wlan:
@@ -85,7 +109,6 @@ class BLEDevice:
         else:
             print("No WiFi credentials set")
 
-print("Hello")
 time.sleep(10)
 print("BLEDevice init")
 ble_device = BLEDevice()

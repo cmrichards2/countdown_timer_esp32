@@ -4,8 +4,14 @@ from bleak import BleakClient, BleakScanner
 # Replace these with your ESP32's UUIDs for the service and characteristics
 SERVICE_UUID = "0000180F-0000-1000-8000-00805F9B34FB"
 WIFI_CREDENTIALS_UUID = "00002A1A-0000-1000-8000-00805F9B34FB"
+WIFI_STATUS_UUID = "00002A1B-0000-1000-8000-00805F9B34FB"  # New UUID for status
 
 ESP32_DEVICE_NAME = "ESP32_Device"  # The name you gave your ESP32's Bluetooth GAP
+
+# Add notification callback
+def notification_handler(sender: int, data: bytearray):
+    status = data.decode()
+    print(f"WiFi Status Update: {status}")
 
 async def connect_and_send_wifi_credentials(ssid: str, password: str):
     # Discover devices
@@ -24,6 +30,9 @@ async def connect_and_send_wifi_credentials(ssid: str, password: str):
     # Connect to the ESP32 device
     async with BleakClient(esp32_device.address) as client:
         print(f"Connected to {ESP32_DEVICE_NAME}")
+
+        # Subscribe to notifications
+        await client.start_notify(WIFI_STATUS_UUID, notification_handler)
 
         # Get the MTU size
         mtu = client.mtu_size - 3  # Subtract 3 for ATT header
@@ -44,6 +53,13 @@ async def connect_and_send_wifi_credentials(ssid: str, password: str):
             print("Credentials sent successfully!")
         except Exception as e:
             print(f"An error occurred: {e}")
+
+        # Wait a bit to receive status updates
+        print("Waiting for WiFi connection status...")
+        await asyncio.sleep(15)  # Wait up to 15 seconds for status updates
+
+        # Unsubscribe from notifications
+        await client.stop_notify(WIFI_STATUS_UUID)
 
 # Define the SSID and password
 wifi_ssid = "Nest Router"       # Replace with your Wi-Fi SSID
