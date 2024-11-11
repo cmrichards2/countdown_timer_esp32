@@ -8,21 +8,16 @@ class Button:
         self.pin = Pin(pin, Pin.IN, Pin.PULL_DOWN)
         self.pin.irq(trigger=Pin.IRQ_FALLING | Pin.IRQ_RISING, handler=self.button_handler)
         self.on_press = on_press
-        self.last_press_time = 0
         self.press_start_time = 0
-        self.debounce_delay = 200  # 200ms debounce delay
         self.is_pressed = False
 
     def button_handler(self, pin):
         current_time = time.ticks_ms()
         if pin.value() == True and not self.is_pressed:
-            # Button pressed - record start time if debounced
-            # if time.ticks_diff(current_time, self.last_press_time) > self.debounce_delay:
             self.press_start_time = current_time
             self.is_pressed = True
         elif pin.value() == False and self.is_pressed:
             # Button released - calculate duration and trigger handler
             duration = time.ticks_diff(current_time, self.press_start_time)
             self.on_press(duration)
-            self.last_press_time = current_time
             self.is_pressed = False
