@@ -1,14 +1,41 @@
-# Application
+# Application Overview
 
-[Enter description here]
+This is a MicroPython application designed for ESP32 devices that implements a WiFi provisioning system using Bluetooth Low Energy (BLE). Here's how it works:
 
-- [] The app should allow the wifi connection to be setup via a bluetooth connection from a mobile device (like the NEST smoke alarm)
-- [] During setup, associate the device with the user in their online account
-- [] Fetch the timer associated with the device online (if one has been associated). The online timer and device timer should always be in sync
-- [] Display the timer on the screen - the timer should count down and go below zero
-- [] Allow the user to reset the timer by pressing the button - this will be recorded via the Rails API
-- [] The device will glow green as it approaches zero,  and glow red when it goes past zero
-- [] The device will come alive when a user walks past the device as detected by the motion sensor
+## Core Functionality
+
+1. **WiFi Connection Management**
+   - Attempts to connect using stored WiFi credentials if they exist
+   - If connection fails or no credentials exist, enters a Bluetooth pairing mode
+   - Credentials are stored persistently in a JSON file
+
+2. **Bluetooth Pairing Mode**
+   - Advertises itself as a BLE device (default name "ESP32_Device")
+   - Waits for a mobile app to connect and send WiFi credentials
+   - Provides real-time connection status feedback through BLE notifications
+   - Uses chunked data transfer to handle larger credential payloads
+
+3. **Visual Feedback**
+   - Uses a PWM-controlled LED that fades in/out during pairing mode
+   - LED fading indicates the device is ready to receive WiFi credentials
+
+4. **Factory Reset**
+   - Includes a physical button for factory reset functionality
+   - Holding the button for >1 second triggers a factory reset
+   - Reset clears stored WiFi credentials
+
+## Component Breakdown
+
+- `Application`: Main controller class that orchestrates the overall flow
+- `BLEDevice`: Handles BLE communication and credential reception
+- `WifiConnection`: Manages WiFi connectivity and credential storage
+- `LEDFader`: Controls LED animations for visual feedback
+- `Button`: Handles button input and duration-based actions
+- `Config`: Centralizes configuration settings
+
+## Current State
+
+The application has the basic infrastructure for WiFi provisioning, but the main application logic is still a placeholder:
 
 # Code
 
