@@ -17,7 +17,7 @@ This is a smart timer device that helps users track and manage time periods. Whe
 
 This is a MicroPython application designed for ESP32 devices that implements a WiFi provisioning system using Bluetooth Low Energy (BLE). Here's how it works:
 
-## Core Functionality
+## Core Functionality (implemented)
 
 1. **WiFi Connection Management**
    - Attempts to connect using stored WiFi credentials if they exist
