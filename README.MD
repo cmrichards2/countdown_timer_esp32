@@ -19,7 +19,8 @@ python3 connect.py
 
 # Code
 
-Main application logic is in the application.py file.
+The application starts running in the main.py file, which calls the Application class.
+
 
 ## Notes
 
