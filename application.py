@@ -8,13 +8,22 @@ from config import Config
 # It handles entering pairing mode, connecting to WiFi, and starting the main application loop.
 
 class Application:
-    def __init__(self, bluetooth_name=Config.BLE_NAME_PREFIX):
+    def __init__(self, bluetooth_name):
         self.bluetooth_name = bluetooth_name
         self.button = Button(Config.BUTTON_PIN, self.on_button_pressed)
         self.wifi = WifiConnection(Config.WIFI_CREDENTIALS_FILE)
         self.ble_device = None
     
     def start(self):
+        """
+        Main entry point that handles the application's connection flow:
+        
+        1. First attempts to connect using stored WiFi credentials if they exist
+        2. If connected successfully, enters the main application loop
+        3. If connection fails or no credentials exist, enters Bluetooth pairing mode where 
+           the device will wait for the mobile app to send WiFi credentials
+        4. This cycle repeats indefinitely until a successful WiFi connection is maintained
+        """
         while True:
             if self.wifi.is_connected() or (self.wifi.load_credentials() and self.wifi.connect()):
                 print("Connected to WiFi")
@@ -41,8 +50,7 @@ class Application:
 
     def enter_pairing_mode(self):
         self.ble_device = BLEDevice(self.bluetooth_name, self.handle_wifi_credentials)
-        self.ble_device.await_credentials();
-        self.ble_device.disconnect()
+        self.ble_device.await_credentials_then_disconnect()
         self.ble_device = None
 
     def handle_wifi_credentials(self, wifi_ssid, wifi_pass, notify_wifi_status):

@@ -43,10 +43,11 @@ class BLEDevice:
         self.led_fader.stop()
         self.ble = None
     
-    def await_credentials(self):
+    def await_credentials_then_disconnect(self):
         while not self.wifi_connected:
             time.sleep(3)
             self.show_status()
+        self.disconnect()
 
     def start_bluetooth_advertising(self):
         adv_data = ble_advertising.advertising_payload(name=self.name)

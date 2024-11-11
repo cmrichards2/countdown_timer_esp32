@@ -5,7 +5,7 @@ import os
 from config import Config
 
 class WifiConnection:
-    def __init__(self, credentials_file=Config.WIFI_CREDENTIALS_FILE):
+    def __init__(self, credentials_file):
         self.credentials_file = credentials_file
         self.wlan = None
         self.wifi_ssid = None 
