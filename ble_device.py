@@ -1,6 +1,7 @@
 import ubluetooth
 import ble_advertising
 import time
+from machine import Pin
 
 class BLEDevice:
     def __init__(self, name, handle_wifi_credentials):
@@ -11,6 +12,8 @@ class BLEDevice:
         self.ble.active(True)
         self.ble.irq(self.on_ble_event)
         self.wifi_connected = False
+        self.led = Pin(13, Pin.OUT)
+        self.led_on = False
         
         # Define UUIDs and characteristics for Wi-Fi credentials
         SERVICE_UUID = ubluetooth.UUID("0000180F-0000-1000-8000-00805F9B34FB")
@@ -41,10 +44,14 @@ class BLEDevice:
         self.ble = None
     
     def await_credentials(self):
+        # Flash LED 30 times quickly when in pairing mode
         while not self.wifi_connected:
-            time.sleep(3)
+            for _ in range(30):
+                self.led_on = not self.led_on
+                self.led.value(self.led_on)
+                time.sleep(0.1)
             self.ping_for_wifi_credentials()
-    
+
     def start_advertising(self):
         adv_data = ble_advertising.advertising_payload(name=self.name)
         self.ble.gap_advertise(100, adv_data)  # 100ms interval
