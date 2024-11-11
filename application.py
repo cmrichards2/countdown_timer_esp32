@@ -49,13 +49,13 @@ class Application:
                 break
 
     def enter_pairing_mode(self):
-        self.ble_device = BLEDevice(self.bluetooth_name, self.handle_wifi_credentials)
-        self.ble_device.await_credentials_then_disconnect()
+        self.ble_device = BLEDevice(self.bluetooth_name, self.try_wifi_credentials)
+        self.ble_device.await_wifi_credentials_then_disconnect()
         self.ble_device = None
 
-    def handle_wifi_credentials(self, wifi_ssid, wifi_pass, notify_wifi_status):
+    def try_wifi_credentials(self, wifi_ssid, wifi_pass, notify_wifi_status):
         """
-        Handle WiFi credentials received from BLE device.
+        Try to connect to WiFi using the provided credentials provided over the bluetooth BLE connection.
         
         Args:
           wifi_ssid (str): The WiFi network SSID
@@ -63,12 +63,14 @@ class Application:
           notify_wifi_status (callable): Callback to notify status changes
       
         Returns:
-            None
+          bool: True if the connection was successful, False otherwise
         """
         notify_wifi_status(b"CONNECTING")
         
         if self.wifi.connect(wifi_ssid, wifi_pass):
             notify_wifi_status(b"CONNECTED")
             self.wifi.save_credentials()
+            return True
         else:
             notify_wifi_status(b"FAILED")
+            return False

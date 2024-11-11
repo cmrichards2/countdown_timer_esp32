@@ -43,7 +43,7 @@ class BLEDevice:
         self.led_fader.stop()
         self.ble = None
     
-    def await_credentials_then_disconnect(self):
+    def await_wifi_credentials_then_disconnect(self):
         while not self.wifi_connected:
             time.sleep(3)
             self.show_status()
@@ -56,8 +56,6 @@ class BLEDevice:
     
     def notify_wifi_status(self, status):
         self.ble.gatts_notify(0, self.status_handle, status)
-        if status == b"CONNECTED":
-            self.wifi_connected = True
 
     def on_ble_event(self, event, data):
         if event == 1:  # BLE connect event
@@ -79,7 +77,8 @@ class BLEDevice:
                             self.wifi_ssid = creds[0]
                             self.wifi_pass = creds[1]
                             print(f"SSID: {self.wifi_ssid}, Password: {self.wifi_pass}")
-                            self.handle_wifi_credentials(self.wifi_ssid, self.wifi_pass, self.notify_wifi_status)
+                            if self.handle_wifi_credentials(self.wifi_ssid, self.wifi_pass, self.notify_wifi_status) == True:
+                                self.wifi_connected = True
                         else:
                             print("Invalid credential format")
                         # Reset the buffer
