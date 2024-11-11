@@ -13,11 +13,15 @@ class LEDFader:
         self.increment = self.FADE_INCREMENT
         self.pwm = PWM(self.led_pin, freq=self.PWM_FREQ)
         self.fade_timer = Timer(0)
+        self.stopped = False
         self.fade_timer.init(period=self.FADE_PERIOD_MS,
                            mode=Timer.PERIODIC,
                            callback=self._fade_led)
 
     def _fade_led(self, timer):
+        if self.stopped:
+            return
+        
         self.pwm.duty(self.brightness)
         self.brightness += self.increment
         
@@ -30,5 +34,6 @@ class LEDFader:
             self.increment = self.FADE_INCREMENT
 
     def stop(self):
+        self.stopped = True
         self.fade_timer.deinit()
         self.pwm.deinit()
