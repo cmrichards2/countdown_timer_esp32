@@ -1,3 +1,18 @@
+# Timer Device Application
+
+This is a smart timer device that helps users track and manage time periods. When completed, it will:
+
+- Allow users to set up the device via their mobile phone using Bluetooth
+- Connect to WiFi to sync with an online account and timer settings
+- Display a countdown timer that can go into negative time
+- Provide visual feedback through color changes:
+  - Glows green as the timer approaches zero
+  - Glows red when time goes past zero
+- Detect motion to "wake up" when users walk by
+- Allow users to reset the timer with a physical button press
+- Sync all timer events with an online service
+- Associate each device with a user's online account during setup
+
 # Application Overview
 
 This is a MicroPython application designed for ESP32 devices that implements a WiFi provisioning system using Bluetooth Low Energy (BLE). Here's how it works:
@@ -35,7 +50,18 @@ This is a MicroPython application designed for ESP32 devices that implements a W
 
 ## Current State
 
-The application has the basic infrastructure for WiFi provisioning, but the main application logic is still a placeholder:
+The application has the basic infrastructure for WiFi provisioning, but the main application logic is still a placeholder.
+
+## Todo 
+
+- [] The app should allow the wifi connection to be setup via a bluetooth connection from a mobile device (like the NEST smoke alarm)
+- [] During setup, associate the device with the user in their online account
+- [] Fetch the timer associated with the device online (if one has been associated). The online timer and device timer should always be in sync
+- [] Display the timer on the screen - the timer should count down and go below zero
+- [] Allow the user to reset the timer by pressing the button - this will be recorded via the Rails API
+- [] The device will glow green as it approaches zero,  and glow red when it goes past zero
+- [] The device will come alive when a user walks past the device as detected by the motion sensor
+
 
 # Code
 
