@@ -2,10 +2,9 @@ import ubluetooth
 import ble_advertising
 import time
 from led_fader import LEDFader
+from config import Config
 
 class BLEDevice:
-    FLASHING_LED_PIN = 13
-
     def __init__(self, name, handle_wifi_credentials):
         self.name = name
         self.handle_wifi_credentials = handle_wifi_credentials
@@ -13,17 +12,17 @@ class BLEDevice:
         self.wlan = None
         self.wifi_ssid = None
         self.wifi_pass = None
-        self.received_data = bytearray()  # Add this line to store received chunks
+        self.received_data = bytearray()
 
-        self.led_fader = LEDFader(self.FLASHING_LED_PIN)
+        self.led_fader = LEDFader(Config.LED_PIN)
         self.setup_bluetooth_service()
         self.start_bluetooth_advertising()
 
     def setup_bluetooth_service(self):
-        # Define UUIDs and characteristics for Wi-Fi credentials for BLE
-        SERVICE_UUID = ubluetooth.UUID("0000180F-0000-1000-8000-00805F9B34FB")
-        WIFI_CREDENTIALS_UUID = ubluetooth.UUID("00002A1A-0000-1000-8000-00805F9B34FB")
-        WIFI_STATUS_UUID = ubluetooth.UUID("00002A1B-0000-1000-8000-00805F9B34FB")
+        # Use config values for UUIDs
+        SERVICE_UUID = ubluetooth.UUID(Config.BLE_SERVICE_UUID)
+        WIFI_CREDENTIALS_UUID = ubluetooth.UUID(Config.BLE_WIFI_CREDENTIALS_UUID)
+        WIFI_STATUS_UUID = ubluetooth.UUID(Config.BLE_WIFI_STATUS_UUID)
 
         self.ble = ubluetooth.BLE()
         self.ble.active(True)
@@ -51,7 +50,7 @@ class BLEDevice:
 
     def start_bluetooth_advertising(self):
         adv_data = ble_advertising.advertising_payload(name=self.name)
-        self.ble.gap_advertise(100, adv_data)  # 100ms interval
+        self.ble.gap_advertise(Config.BLE_ADVERTISING_INTERVAL_MS, adv_data)
         print(f"Advertising as '{self.name}'")        
     
     def notify_wifi_status(self, status):

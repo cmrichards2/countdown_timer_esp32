@@ -2,9 +2,10 @@ import network
 import time
 import json
 import os
+from config import Config
 
 class WifiConnection:
-    def __init__(self, credentials_file="wifi_credentials.json"):
+    def __init__(self, credentials_file=Config.WIFI_CREDENTIALS_FILE):
         self.credentials_file = credentials_file
         self.wlan = None
         self.wifi_ssid = None 
@@ -46,8 +47,8 @@ class WifiConnection:
             
             # Wait for connection with timeout
             retry_count = 0
-            while not self.wlan.isconnected() and retry_count < 10:
-                time.sleep(1)
+            while not self.wlan.isconnected() and retry_count < Config.WIFI_RETRY_COUNT:
+                time.sleep(Config.WIFI_RETRY_DELAY_SEC)
                 retry_count += 1
             
             if self.wlan.isconnected():

@@ -2,17 +2,16 @@ import time
 from ble_device import BLEDevice
 from button import Button
 from wifi_connection import WifiConnection
+from config import Config
 
 # This application class is the main entry point for the application.
 # It handles entering pairing mode, connecting to WiFi, and starting the main application loop.
 
 class Application:
-    FACTORY_RESET_DURATION_MS = 1000
-
-    def __init__(self, bluetooth_name = "ESP32_Device"):
+    def __init__(self, bluetooth_name=Config.BLE_NAME_PREFIX):
         self.bluetooth_name = bluetooth_name
-        self.button = Button(25, self.on_button_pressed)
-        self.wifi = WifiConnection()
+        self.button = Button(Config.BUTTON_PIN, self.on_button_pressed)
+        self.wifi = WifiConnection(Config.WIFI_CREDENTIALS_FILE)
         self.ble_device = None
     
     def start(self):
@@ -27,7 +26,7 @@ class Application:
     # When the button is held for the factory reset duration, the WiFi credentials are reset which
     # will make the device enter pairing mode again.
     def on_button_pressed(self, duration):
-        if self.wifi.is_connected() and duration > self.FACTORY_RESET_DURATION_MS:
+        if self.wifi.is_connected() and duration > Config.FACTORY_RESET_DURATION_MS:
             print("Button is pressed! Factory reset!")
             self.wifi.reset()
 
