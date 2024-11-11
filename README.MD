@@ -2,7 +2,7 @@
 
 This is a smart timer device that helps users track and manage time periods. When completed, it will:
 
-- Allow users to set up the device via their mobile phone using Bluetooth
+- Allow users to perform the initial setup of the hardware device via their mobile phone using Bluetooth
 - Connect to WiFi to sync with an online account and timer settings
 - Display a countdown timer that can go into negative time
 - Provide visual feedback through color changes:
