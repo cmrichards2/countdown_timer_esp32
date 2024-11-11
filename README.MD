@@ -2,7 +2,7 @@
 
 [Enter description here]
 
-- [] The app should allow the wifi connection to be setup via a bluetooth connection from a mobile device
+- [] The app should allow the wifi connection to be setup via a bluetooth connection from a mobile device (like the NEST smoke alarm)
 - [] During setup, associate the device with the user in their online account
 - [] Fetch the timer associated with the device online (if one has been associated). The online timer and device timer should match
 - [] Display the timer on the screen - the timer should count down and go below zero
