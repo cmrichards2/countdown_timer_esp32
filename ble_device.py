@@ -1,7 +1,7 @@
 import ubluetooth
 import ble_advertising
 import time
-from machine import Pin, PWM, Timer
+from led_fader import LEDFader
 
 class BLEDevice:
     FLASHING_LED_PIN = 13
@@ -10,14 +10,13 @@ class BLEDevice:
         self.name = name
         self.handle_wifi_credentials = handle_wifi_credentials
         self.wifi_connected = False
-        self.led = Pin(self.FLASHING_LED_PIN, Pin.OUT)
         self.wlan = None
         self.wifi_ssid = None
         self.wifi_pass = None
         self.received_data = bytearray()  # Add this line to store received chunks
 
+        self.led_fader = LEDFader(self.FLASHING_LED_PIN)
         self.setup_bluetooth_service()
-        self.create_led_fade()
         self.start_bluetooth_advertising()
 
     def setup_bluetooth_service(self):
@@ -42,7 +41,7 @@ class BLEDevice:
     def disconnect(self):
         self.ble.gap_advertise(0, None)
         self.ble.active(False)
-        self.fade_timer.deinit()
+        self.led_fader.stop()
         self.ble = None
     
     def await_credentials(self):
@@ -91,37 +90,6 @@ class BLEDevice:
                         print(f"Received chunk, current length: {len(self.received_data)}")
                 except Exception as e:
                     print(f"Error processing data: {e}")
-
-    def create_led_fade(self):
-        """Set up PWM-controlled LED fading effect with bounds checking"""
-        self.MIN_BRIGHTNESS = 0
-        self.MAX_BRIGHTNESS = 1023
-        self.FADE_INCREMENT = 50
-        self.FADE_PERIOD_MS = 20
-        self.PWM_FREQ = 1000
-
-        self.brightness = self.MIN_BRIGHTNESS
-        self.increment = self.FADE_INCREMENT
-
-        def fade_led(timer):
-            self.pwm.duty(self.brightness)
-            self.brightness += self.increment
-            
-            # Check bounds and reverse direction if needed
-            if self.brightness >= self.MAX_BRIGHTNESS:
-                self.brightness = self.MAX_BRIGHTNESS
-                self.increment = -self.FADE_INCREMENT
-            elif self.brightness <= self.MIN_BRIGHTNESS:
-                self.brightness = self.MIN_BRIGHTNESS 
-                self.increment = self.FADE_INCREMENT
-
-        # Initialize PWM and timer
-        self.pwm = PWM(self.led, freq=self.PWM_FREQ)
-        self.fade_timer = Timer(0)
-        self.fade_timer.init(period=self.FADE_PERIOD_MS, 
-                           mode=Timer.PERIODIC, 
-                           callback=fade_led)
-
 
     def show_status(self):
         if self.wlan:
