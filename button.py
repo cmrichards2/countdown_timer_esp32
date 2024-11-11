@@ -20,4 +20,5 @@ class Button:
             # Button released - calculate duration and trigger handler
             duration = time.ticks_diff(current_time, self.press_start_time)
             self.on_press(duration)
+            self.last_press_time = current_time
             self.is_pressed = False

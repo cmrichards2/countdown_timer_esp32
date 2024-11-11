@@ -1,7 +1,7 @@
 import ubluetooth
 import ble_advertising
 import time
-from machine import Pin
+from machine import Pin, PWM, Timer
 
 class BLEDevice:
     def __init__(self, name, handle_wifi_credentials):
@@ -13,15 +13,17 @@ class BLEDevice:
         self.ble.irq(self.on_ble_event)
         self.wifi_connected = False
         self.led = Pin(13, Pin.OUT)
-        self.led_on = False
-        
+        self.wlan = None
+        self.wifi_ssid = None
+        self.wifi_pass = None
+        self.received_data = bytearray()  # Add this line to store received chunks
+
         # Define UUIDs and characteristics for Wi-Fi credentials
         SERVICE_UUID = ubluetooth.UUID("0000180F-0000-1000-8000-00805F9B34FB")
         WIFI_CREDENTIALS_UUID = ubluetooth.UUID("00002A1A-0000-1000-8000-00805F9B34FB")
-        WIFI_STATUS_UUID = ubluetooth.UUID("00002A1B-0000-1000-8000-00805F9B34FB")  # New UUID for status
+        WIFI_STATUS_UUID = ubluetooth.UUID("00002A1B-0000-1000-8000-00805F9B34FB")
 
         self.ble.config(gap_name=name)
-
         self.service = (
             SERVICE_UUID, 
             (
@@ -31,26 +33,19 @@ class BLEDevice:
         )
         ((self.characteristic_handle, self.status_handle),) = self.ble.gatts_register_services((self.service,))
         
+        self.create_led_fade()
         self.start_advertising()
-
-        self.wlan = None
-        self.wifi_ssid = None
-        self.wifi_pass = None
-        self.received_data = bytearray()  # Add this line to store received chunks
     
     def disconnect(self):
         self.ble.gap_advertise(0, None)
         self.ble.active(False)
+        self.fade_timer.deinit()
         self.ble = None
     
     def await_credentials(self):
-        # Flash LED 30 times quickly when in pairing mode
         while not self.wifi_connected:
-            for _ in range(30):
-                self.led_on = not self.led_on
-                self.led.value(self.led_on)
-                time.sleep(0.1)
-            self.ping_for_wifi_credentials()
+            time.sleep(3)
+            self.show_status()
 
     def start_advertising(self):
         adv_data = ble_advertising.advertising_payload(name=self.name)
@@ -94,8 +89,38 @@ class BLEDevice:
                 except Exception as e:
                     print(f"Error processing data: {e}")
 
+    def create_led_fade(self):
+        """Set up PWM-controlled LED fading effect with bounds checking"""
+        self.MIN_BRIGHTNESS = 0
+        self.MAX_BRIGHTNESS = 1023
+        self.FADE_INCREMENT = 50
+        self.FADE_PERIOD_MS = 20
+        self.PWM_FREQ = 1000
 
-    def ping_for_wifi_credentials(self):
+        self.brightness = self.MIN_BRIGHTNESS
+        self.increment = self.FADE_INCREMENT
+
+        def fade_led(timer):
+            self.pwm.duty(self.brightness)
+            self.brightness += self.increment
+            
+            # Check bounds and reverse direction if needed
+            if self.brightness >= self.MAX_BRIGHTNESS:
+                self.brightness = self.MAX_BRIGHTNESS
+                self.increment = -self.FADE_INCREMENT
+            elif self.brightness <= self.MIN_BRIGHTNESS:
+                self.brightness = self.MIN_BRIGHTNESS 
+                self.increment = self.FADE_INCREMENT
+
+        # Initialize PWM and timer
+        self.pwm = PWM(self.led, freq=self.PWM_FREQ)
+        self.fade_timer = Timer(0)
+        self.fade_timer.init(period=self.FADE_PERIOD_MS, 
+                           mode=Timer.PERIODIC, 
+                           callback=fade_led)
+
+
+    def show_status(self):
         if self.wlan:
             if self.wlan.isconnected():
                 print(f"WiFi credentails: {self.wifi_ssid}, {self.wifi_pass}")
