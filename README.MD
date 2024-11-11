@@ -1,6 +1,13 @@
+# Application
+
+[Enter description here]
+
+[ ] The app should allow the wifi connection to be setup via a bluetooth connection from a mobile device
+[ ] ....
+
 # Code
 
-The application starts running in the main.py file, which calls the Application class.
+The application starts running on the ESP32 from the main.py file
 
 ## Deploying the application
 
