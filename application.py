@@ -25,6 +25,13 @@ class Application:
 
         self.start()
 
+    # When the button is held for the factory reset duration, the WiFi credentials are reset which
+    # will make the device enter pairing mode again.
+    def on_button_pressed(self, duration):
+        if self.wifi.is_connected() and duration > self.FACTORY_RESET_DURATION_MS:
+            print("Button is pressed! Factory reset!")
+            self.wifi.reset()
+
     # Todo: add main application logic here
     def start_main_loop(self):
         while True:
@@ -39,11 +46,6 @@ class Application:
         self.ble_device.await_credentials();
         self.ble_device.disconnect()
         self.ble_device = None
-
-    def on_button_pressed(self, duration):
-        if self.wifi.is_connected() and duration > self.FACTORY_RESET_DURATION_MS:
-            print("Button is pressed! Factory reset!")
-            self.wifi.reset()
 
     def handle_wifi_credentials(self, wifi_ssid, wifi_pass, notify_wifi_status):
         notify_wifi_status(b"CONNECTING")
