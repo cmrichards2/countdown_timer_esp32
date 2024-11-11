@@ -19,23 +19,47 @@ class BLEDevice:
         self.start_bluetooth_advertising()
 
     def setup_bluetooth_service(self):
-        # Use config values for UUIDs
+        # BLE operates using Services and Characteristics:
+        # - A Service is a collection of data and behaviors for a particular purpose
+        # - Characteristics are data values that can be read, written, or notified within a Service
+        
+        # UUIDs (Universal Unique Identifiers) are used to identify Services and Characteristics
+        # Standard UUIDs exist for common services (e.g., battery service)
+        # Here we're using custom UUIDs defined in our config
         SERVICE_UUID = ubluetooth.UUID(Config.BLE_SERVICE_UUID)
         WIFI_CREDENTIALS_UUID = ubluetooth.UUID(Config.BLE_WIFI_CREDENTIALS_UUID)
         WIFI_STATUS_UUID = ubluetooth.UUID(Config.BLE_WIFI_STATUS_UUID)
 
+        # Initialize BLE radio and set it to active
         self.ble = ubluetooth.BLE()
         self.ble.active(True)
+        
+        # Register callback for BLE events (connect, disconnect, data received)
         self.ble.irq(self.on_ble_event)
+        
+        # Set the device name that will appear to other devices
         self.ble.config(gap_name=self.name)
+
+        # Define our custom service structure:
+        # - First tuple element is the Service UUID
+        # - Second element is a tuple of Characteristics, each containing:
+        #   * Characteristic UUID
+        #   * Flags that define what operations are allowed:
+        #     - FLAG_WRITE: Allows clients to write values
+        #     - FLAG_READ: Allows clients to read values
+        #     - FLAG_NOTIFY: Allows server to push updates to connected clients
         self.service = (
             SERVICE_UUID, 
             (
-                (WIFI_CREDENTIALS_UUID, ubluetooth.FLAG_WRITE),
-                (WIFI_STATUS_UUID, ubluetooth.FLAG_NOTIFY),  # New characteristic
+                (WIFI_CREDENTIALS_UUID, ubluetooth.FLAG_WRITE),  # Clients can write WiFi credentials
+                (WIFI_STATUS_UUID, ubluetooth.FLAG_NOTIFY),      # We can notify clients about WiFi status
             )
         )
-        ((self.characteristic_handle, self.status_handle),) = self.ble.gatts_register_services((self.service,))
+        
+        # Register the service with the BLE stack
+        # This returns handles (unique identifiers) that we'll use to reference 
+        # specific characteristics when reading/writing/notifying
+        ((self.wifi_credentials_handle, self.wifi_status_handle),) = self.ble.gatts_register_services((self.service,))
     
     def disconnect(self):
         self.ble.gap_advertise(0, None)
@@ -55,40 +79,64 @@ class BLEDevice:
         print(f"Advertising as '{self.name}'")        
     
     def notify_wifi_status(self, status):
-        self.ble.gatts_notify(0, self.status_handle, status)
+        """Notify connected clients about WiFi connection status changes"""
+        self.ble.gatts_notify(0, self.wifi_status_handle, status)
 
     def on_ble_event(self, event, data):
-        if event == 1:  # BLE connect event
+        BLE_CONNECT = 1
+        BLE_DISCONNECT = 2
+        BLE_WRITE = 3
+
+        if event == BLE_CONNECT:
             print("BLE connected")
             self.received_data = bytearray()  # Reset received data on new connection
-        elif event == 2:  # BLE disconnect event
+            return
+
+        if event == BLE_DISCONNECT:
             print("BLE disconnected")
-        elif event == 3:  # Write request
-            buffer = self.ble.gatts_read(self.characteristic_handle)
-            if buffer:
-                try:
-                    # Check if this is the END marker
-                    if buffer == b"END":
-                        # Process complete data
-                        decoded = self.received_data.decode("utf-8")
-                        print(f"Received complete data: {decoded}")
-                        creds = decoded.split("|")
-                        if len(creds) == 2:
-                            self.wifi_ssid = creds[0]
-                            self.wifi_pass = creds[1]
-                            print(f"SSID: {self.wifi_ssid}, Password: {self.wifi_pass}")
-                            if self.handle_wifi_credentials(self.wifi_ssid, self.wifi_pass, self.notify_wifi_status) == True:
-                                self.wifi_connected = True
-                        else:
-                            print("Invalid credential format")
-                        # Reset the buffer
-                        self.received_data = bytearray()
-                    else:
-                        # Append the chunk to received_data
-                        self.received_data.extend(buffer)
-                        print(f"Received chunk, current length: {len(self.received_data)}")
-                except Exception as e:
-                    print(f"Error processing data: {e}")
+            return
+
+        if event == BLE_WRITE:
+            self._handle_write_wifi_credentials_event()
+
+    def _handle_write_wifi_credentials_event(self):
+        """Handle incoming data chunks and process complete WiFi credentials"""
+        buffer = self.ble.gatts_read(self.wifi_credentials_handle)
+        if not buffer:
+            return
+
+        try:
+            if buffer == b"END":
+                self._process_complete_credentials()
+            else:
+                # Append the chunk to received_data
+                self.received_data.extend(buffer)
+                print(f"Received chunk, current length: {len(self.received_data)}")
+        except Exception as e:
+            print(f"Error processing data: {e}")
+
+    def _process_complete_credentials(self):
+        """
+        Process the complete WiFi credentials once END marker is received
+        
+        The credentials are expected to be in the format "SSID|PASSWORD"
+        """
+        decoded = self.received_data.decode("utf-8")
+        print(f"Received complete data: {decoded}")
+        
+        creds = decoded.split("|")
+        if len(creds) != 2:
+            print("Invalid credential format")
+            self.received_data = bytearray()
+            return
+
+        self.wifi_ssid, self.wifi_pass = creds
+        print(f"SSID: {self.wifi_ssid}, Password: {self.wifi_pass}")
+        
+        if self.handle_wifi_credentials(self.wifi_ssid, self.wifi_pass, self.notify_wifi_status):
+            self.wifi_connected = True
+        
+        self.received_data = bytearray()
 
     def show_status(self):
         if self.wlan:
