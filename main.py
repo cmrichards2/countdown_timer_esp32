@@ -2,6 +2,29 @@ import ubluetooth
 import ble_advertising
 import network
 import time
+from button import Button
+from machine import Pin
+
+
+class Application:
+    def __init__(self):
+        self.name = "ESP32_Device"
+    
+    def start(self):
+        self.switch = Button(25, self.switch_handler)
+
+        time.sleep(8)
+
+        print("BLEDevice init")
+        ble_device = BLEDevice()
+
+        while True:
+            time.sleep(3)
+            ble_device.ping_for_wifi_credentials()
+            print("BLEDevice loop")
+
+    def switch_handler(self):
+        print("Switch is pressed!")
 
 class BLEDevice:
     def __init__(self):
@@ -109,13 +132,6 @@ class BLEDevice:
         else:
             print("No WiFi credentials set")
 
-time.sleep(10)
-print("BLEDevice init")
-ble_device = BLEDevice()
 
-while True:
-    time.sleep(3)
-    ble_device.ping_for_wifi_credentials()
-    print("BLEDevice loop")
-
-
+app = Application()
+app.start()
