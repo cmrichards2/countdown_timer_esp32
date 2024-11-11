@@ -1,3 +1,7 @@
+# Code
+
+The application starts running in the main.py file, which calls the Application class.
+
 ## Deploying the application
 
 To copy the python files to the ESP32 run:
@@ -12,14 +16,10 @@ mpremote connect /dev/ttyUSB0
 
 ## Running the test connection script
 
-To connect to the ESP32 and send WiFi credentials run:
+To connect to the ESP32 and send WiFi credentials over bluetooth (BLE), run:
 ```
 python3 connect.py
 ```
-
-# Code
-
-The application starts running in the main.py file, which calls the Application class.
 
 
 ## Notes
