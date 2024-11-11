@@ -3,22 +3,26 @@ import time
 
 class Button:
     # This class is used to handle a button on the ESP32.
-    # There is an on press event that only triggers once, using debouncing to ensure it only triggers once.
+    # The on_press handler triggers when button is released, passing the duration held.
     def __init__(self, pin, on_press):
         self.pin = Pin(pin, Pin.IN, Pin.PULL_DOWN)
         self.pin.irq(trigger=Pin.IRQ_FALLING | Pin.IRQ_RISING, handler=self.button_handler)
         self.on_press = on_press
         self.last_press_time = 0
+        self.press_start_time = 0
         self.debounce_delay = 200  # 200ms debounce delay
         self.is_pressed = False
 
     def button_handler(self, pin):
         current_time = time.ticks_ms()
         if pin.value() == True and not self.is_pressed:
-            # Check if enough time has passed since last press
-            if time.ticks_diff(current_time, self.last_press_time) > self.debounce_delay:
-                self.on_press()
-                self.last_press_time = current_time
-                self.is_pressed = True
-        elif pin.value() == False:
+            # Button pressed - record start time if debounced
+            # if time.ticks_diff(current_time, self.last_press_time) > self.debounce_delay:
+            self.press_start_time = current_time
+            self.is_pressed = True
+        elif pin.value() == False and self.is_pressed:
+            # Button released - calculate duration and trigger handler
+            duration = time.ticks_diff(current_time, self.press_start_time)
+            self.on_press(duration)
+            self.last_press_time = current_time
             self.is_pressed = False

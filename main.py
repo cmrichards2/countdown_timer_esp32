@@ -4,6 +4,9 @@ from ble_device import BLEDevice
 from button import Button
 
 class Application:
+    # Duration in milliseconds that the switch must be held to trigger factory reset (resetting wifi credentials)
+    FACTORY_RESET_DURATION_MS = 1000  
+
     def __init__(self, name = "ESP32_Device"):
         self.name = name
         self.switch = Button(25, self.switch_handler)
@@ -37,8 +40,8 @@ class Application:
                 print("Wifi connection lost, entering pairing mode")
                 break
 
-    def switch_handler(self):
-        if self.wlan is not None:
+    def switch_handler(self, duration):
+        if self.wlan is not None and duration > self.FACTORY_RESET_DURATION_MS:
             self.wlan.disconnect()
             self.wlan = None
             print("Switch is pressed! Factory reset")
