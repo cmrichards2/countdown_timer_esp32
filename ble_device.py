@@ -35,6 +35,11 @@ class BLEDevice:
         self.wifi_pass = None
         self.received_data = bytearray()  # Add this line to store received chunks
     
+    def disconnect(self):
+        self.ble.gap_advertise(0, None)
+        self.ble.active(False)
+        self.ble = None
+    
     def await_credentials(self):
         while not self.wifi_connected:
             time.sleep(3)
@@ -56,7 +61,6 @@ class BLEDevice:
             self.received_data = bytearray()  # Reset received data on new connection
         elif event == 2:  # BLE disconnect event
             print("BLE disconnected")
-            self.start_advertising()
         elif event == 3:  # Write request
             buffer = self.ble.gatts_read(self.characteristic_handle)
             if buffer:
