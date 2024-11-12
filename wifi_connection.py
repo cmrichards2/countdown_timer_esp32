@@ -11,6 +11,10 @@ class WifiConnection:
         self.wlan = None
         self.wifi_ssid = None 
         self.wifi_pass = None
+        self.__subscribe()
+
+    def __subscribe(self):
+        event_bus.subscribe(Events.FACTORY_RESET_BUTTON_PRESSED, self.reset)
 
     def load_credentials(self):
         try:

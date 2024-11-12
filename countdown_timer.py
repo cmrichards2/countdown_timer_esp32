@@ -21,6 +21,12 @@ class CountdownTimer:
                 print("Timer aborted")
                 self.__unsubscribe()
                 break
+
+            if not self.timer_data:
+                # Attempt to fetch timer settings from API every minute if no timer data is
+                # associated with this device
+                self.__fetch_timer_settings()
+                time.sleep(60)
             
             if self.timer_data:
                 end_time = self.__get_end_time()
@@ -41,6 +47,7 @@ class CountdownTimer:
                     "seconds": seconds
                 })
                 time.sleep(1)
+
 
     def __subscribe(self):
         event_bus.subscribe(Events.WIFI_RESET, self.__abort_timer)

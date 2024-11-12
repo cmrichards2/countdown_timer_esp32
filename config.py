@@ -30,4 +30,4 @@ class Config:
     LED_PWM_FREQ = 1000
     
     # Button settings
-    FACTORY_RESET_DURATION_MS = 1000 
+    FACTORY_RESET_DURATION_MS = 5000 

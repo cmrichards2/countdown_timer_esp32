@@ -12,6 +12,7 @@ This is a smart timer device that helps users track and manage time periods. Whe
 - Allow users to reset the timer with a physical button press
 - Sync all timer events with an online service
 - Associate each device with a user's online account during setup
+- Use an external Real-Time Clock (RTC) Module to keep the timer in sync with the online service
 
 # Application Overview
 

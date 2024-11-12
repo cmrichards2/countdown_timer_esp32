@@ -42,7 +42,10 @@ class Application:
     def on_button_pressed(self, duration):
         if self.wifi.is_connected() and duration > Config.FACTORY_RESET_DURATION_MS:
             print("Button is pressed! Factory reset!")
-            self.wifi.reset()
+            event_bus.publish(Events.FACTORY_RESET_BUTTON_PRESSED)
+
+        if duration < 1000:
+            event_bus.publish(Events.BUTTON_TAPPED)
 
     # Todo: add main application logic here
     def start_main_loop(self):
@@ -51,12 +54,8 @@ class Application:
         self.countdown_timer = None
 
     def enter_pairing_mode(self):
-        event_bus.publish(Events.ENTERING_PAIRING_MODE)
-        
         self.ble_device = BLEDevice(self.bluetooth_name, self.try_wifi_credentials)
         self.ble_device.await_wifi_credentials_then_disconnect()
-        
-        event_bus.publish(Events.EXITING_PAIRING_MODE)
         self.ble_device = None
 
     def try_wifi_credentials(self, wifi_ssid, wifi_pass, notify_wifi_status):

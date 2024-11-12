@@ -3,6 +3,7 @@ import ble_advertising
 import time
 from config import Config
 from device_id import DeviceID
+from event_bus import event_bus, Events
 
 class BLEDevice:
     def __init__(self, name, handle_wifi_credentials):
@@ -65,11 +66,13 @@ class BLEDevice:
         
         # Set the initial device ID value
         self.ble.gatts_write(self.device_id_handle, self.device_id.encode())
+        event_bus.publish(Events.ENTERING_PAIRING_MODE)
     
     def disconnect(self):
         self.ble.gap_advertise(0, None)
         self.ble.active(False)
         self.ble = None
+        event_bus.publish(Events.EXITING_PAIRING_MODE)
     
     def await_wifi_credentials_then_disconnect(self):
         while not self.wifi_connected:
