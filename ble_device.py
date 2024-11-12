@@ -1,7 +1,6 @@
 import ubluetooth
 import ble_advertising
 import time
-from led_fader import LEDFader
 from config import Config
 
 class BLEDevice:
@@ -14,7 +13,6 @@ class BLEDevice:
         self.wifi_pass = None
         self.received_data = bytearray()
 
-        self.led_fader = LEDFader(Config.LED_PIN)
         self.setup_bluetooth_service()
         self.start_bluetooth_advertising()
 
@@ -64,7 +62,6 @@ class BLEDevice:
     def disconnect(self):
         self.ble.gap_advertise(0, None)
         self.ble.active(False)
-        self.led_fader.stop()
         self.ble = None
     
     def await_wifi_credentials_then_disconnect(self):

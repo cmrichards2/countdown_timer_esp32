@@ -3,6 +3,8 @@ from ble_device import BLEDevice
 from button import Button
 from wifi_connection import WifiConnection
 from config import Config
+from led_controller import LedController
+from event_bus import event_bus, Events
 
 # This application class is the main entry point for the application.
 # It handles entering pairing mode, connecting to WiFi, and starting the main application loop.
@@ -13,6 +15,7 @@ class Application:
         self.button = Button(Config.BUTTON_PIN, self.on_button_pressed)
         self.wifi = WifiConnection(Config.WIFI_CREDENTIALS_FILE)
         self.ble_device = None
+        self.led_controller = LedController()
     
     def start(self):
         """
@@ -49,8 +52,12 @@ class Application:
                 break
 
     def enter_pairing_mode(self):
+        event_bus.publish(Events.ENTERING_PAIRING_MODE)
+        
         self.ble_device = BLEDevice(self.bluetooth_name, self.try_wifi_credentials)
         self.ble_device.await_wifi_credentials_then_disconnect()
+        
+        event_bus.publish(Events.EXITING_PAIRING_MODE)
         self.ble_device = None
 
     def try_wifi_credentials(self, wifi_ssid, wifi_pass, notify_wifi_status):

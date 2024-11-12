@@ -62,7 +62,14 @@ async def connect_and_send_wifi_credentials(ssid: str, password: str):
         await asyncio.sleep(15)  # Wait up to 15 seconds for status updates
 
         # Unsubscribe from notifications
-        await client.stop_notify(WIFI_STATUS_UUID)
+        if client.is_connected:
+            try:
+                await client.stop_notify(WIFI_STATUS_UUID)
+                print("Stopped WiFi status notifications.")
+            except Exception as e:
+                print(f"An error occurred while stopping notifications: {e}")
+        else:
+            print("Disconnected before stopping notifications.")
 
 # Define the SSID and password
 wifi_ssid = "Nest Router"       # Replace with your Wi-Fi SSID
