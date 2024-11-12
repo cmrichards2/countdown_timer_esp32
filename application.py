@@ -18,34 +18,49 @@ class Application:
         self.wifi = WifiConnection(Config.WIFI_CREDENTIALS_FILE)
         self.ble_device = None
         self.led_controller = LedController()
+        self.__subscribe()
+    
+    def __subscribe(self):
+        event_bus.subscribe(Events.FACTORY_RESET_BUTTON_PRESSED, self._factory_reset)
     
     def start(self):
         """
         Main entry point that handles the application's connection flow:
         
-        1. First attempts to connect using stored WiFi credentials if they exist
-        2. If connected successfully, enters the main application loop
-        3. If connection fails or no credentials exist, enters Bluetooth pairing mode where 
-           the device will wait for the mobile app to send WiFi credentials
-        4. This cycle repeats indefinitely until a successful WiFi connection is maintained
+        1. Check if WiFi credentials exist
+        2. If credentials exist, attempt connection and start main loop regardless of result
+        3. If no credentials exist, enter pairing mode
         """
         while True:
-            if self.wifi.is_connected() or (self.wifi.load_credentials() and self.wifi.connect()):
-                print("Connected to WiFi")
+            if self.wifi.load_credentials():
+                self.wifi.connect_and_monitor_connection()
                 self.start_main_loop()
             else:
-                print("No stored credentials or connection failed")
+                print("No stored credentials")
                 self.enter_pairing_mode()
+
+    def start_reconnection_timer(self):
+        """Start background reconnection attempts when WiFi disconnects"""
+        self.wifi.start_reconnection_timer()
 
     # When the button is held for the factory reset duration, the WiFi credentials are reset which
     # will make the device enter pairing mode again.
     def on_button_pressed(self, duration):
-        if self.wifi.is_connected() and duration > Config.FACTORY_RESET_DURATION_MS:
+        if duration > Config.FACTORY_RESET_DURATION_MS:
             print("Button is pressed! Factory reset!")
             event_bus.publish(Events.FACTORY_RESET_BUTTON_PRESSED)
+            return
 
-        if duration < 1000:
+        if duration > Config.SOFT_RESET_DURATION_MS:
+            print("Button is pressed! Soft reset!")
+            event_bus.publish(Events.SOFT_RESET_BUTTON_PRESSED)
+            return
+
+        if duration < Config.BUTTON_TAP_DURATION_MS:
             event_bus.publish(Events.BUTTON_TAPPED)
+    
+    def _factory_reset(self):
+        CountdownTimer.clear_data()
 
     # Todo: add main application logic here
     def start_main_loop(self):

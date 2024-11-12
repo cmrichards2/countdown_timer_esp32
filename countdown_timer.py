@@ -13,6 +13,11 @@ class CountdownTimer:
         self.__fetch_timer_settings()
         self.__subscribe()
 
+    @staticmethod
+    def clear_data():
+        """Clear the timer data from the API"""
+        API.clear_cache()
+
     def start(self):
         """Start the timer"""
         print("Starting timer")
@@ -34,6 +39,10 @@ class CountdownTimer:
                 current_timestamp = utime.mktime(current_time)
 
                 elapsed_seconds = end_time - current_timestamp
+                time_type = "until" if elapsed_seconds > 0 else "since"
+                
+                # Take absolute value if elapsed_seconds is negative
+                elapsed_seconds = abs(elapsed_seconds)
 
                 days = elapsed_seconds // 86400
                 hours = (elapsed_seconds % 86400) // 3600
@@ -44,10 +53,10 @@ class CountdownTimer:
                     "days": days,
                     "hours": hours,
                     "minutes": minutes,
-                    "seconds": seconds
+                    "seconds": seconds,
+                    "type": time_type
                 })
                 time.sleep(1)
-
 
     def __subscribe(self):
         event_bus.subscribe(Events.WIFI_RESET, self.__abort_timer)

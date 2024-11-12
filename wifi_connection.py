@@ -4,6 +4,7 @@ import json
 import os
 from config import Config
 from event_bus import event_bus, Events
+from machine import Timer
 
 class WifiConnection:
     def __init__(self, credentials_file):
@@ -11,10 +12,12 @@ class WifiConnection:
         self.wlan = None
         self.wifi_ssid = None 
         self.wifi_pass = None
+        self.reconnect_timer = None
         self.__subscribe()
 
     def __subscribe(self):
         event_bus.subscribe(Events.FACTORY_RESET_BUTTON_PRESSED, self.reset)
+        event_bus.subscribe(Events.SOFT_RESET_BUTTON_PRESSED, self.reset)
 
     def load_credentials(self):
         try:
@@ -36,6 +39,22 @@ class WifiConnection:
         except Exception as e:
             print(f"Error saving credentials: {e}")
 
+    def connect_and_monitor_connection(self):
+        self.connect()
+        self._monitor_connection()
+
+    def _monitor_connection(self):
+        """ Start a periodic timer to check if the WiFi connection is lost and attempt to reconnect """
+        self.reconnect_timer = Timer(1)
+        self.reconnect_timer.init(period=30000, mode=Timer.PERIODIC, callback=self._try_reconnect)
+
+    def _try_reconnect(self, timer):
+        """Attempt to reconnect to WiFi if disconnected"""
+        if not self.is_connected() and self.wifi_ssid and self.wifi_pass:
+            print("Wifi has been disconnected, attempting to reconnect...")
+            if self.connect():
+                event_bus.publish(Events.WIFI_CONNECTED)
+
     def connect(self, ssid=None, password=None):
         if ssid:
             self.wifi_ssid = ssid
@@ -43,11 +62,13 @@ class WifiConnection:
             
         if not self.wifi_ssid or not self.wifi_pass:
             return False
+
+        if self.wlan and self.wlan.isconnected():
+            return True
             
         try:
             self.wlan = network.WLAN(network.STA_IF)
             self.wlan.active(True)
-            
             self.wlan.connect(self.wifi_ssid, self.wifi_pass)
             
             # Wait for connection with timeout
@@ -58,6 +79,7 @@ class WifiConnection:
             
             if self.wlan.isconnected():
                 print("Connected to WiFi:", self.wlan.ifconfig())
+                event_bus.publish(Events.WIFI_CONNECTED)
                 return True
             else:
                 print("Failed to connect to WiFi")

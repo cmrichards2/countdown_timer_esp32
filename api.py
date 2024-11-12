@@ -9,6 +9,12 @@ class API:
     def __init__(self):
         self.base_url = "https://api.example.com"
         self.timer_cache_file = Config.TIMER_JSON_FILE
+
+    @staticmethod
+    def clear_cache():
+        """Clear the timer data from the API"""
+        if os.path.exists(Config.TIMER_JSON_FILE):
+            os.remove(Config.TIMER_JSON_FILE)
     
     def get_timer_for_device(self, device_id):
         """
