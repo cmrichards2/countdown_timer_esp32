@@ -83,7 +83,7 @@ class CountdownTimer:
 
     def __on_time_changed(self, time_data):
         """Show the time left on the display"""
-        print(f"Time changed: {time_data}")
+        print(f"Time left: {time_data}")
 
     def __get_end_time(self):
         """Return the start time of the timer. Parsed from the timer data."""

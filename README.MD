@@ -16,7 +16,7 @@ This is a smart timer device that helps users track and manage time periods. Whe
 
 # Application Overview
 
-This is a MicroPython application designed for ESP32 devices that implements a WiFi provisioning system using Bluetooth Low Energy (BLE). Here's how it works:
+This is a MicroPython application designed for ESP32 devices that implements a WiFi-connected countdown timer with Bluetooth Low Energy (BLE) provisioning. The system allows users to set up their device via Bluetooth, connect it to WiFi, and sync with an online timer service.
 
 ## Core Functionality (implemented)
 
@@ -30,24 +30,42 @@ This is a MicroPython application designed for ESP32 devices that implements a W
    - Waits for a mobile app to connect and send WiFi credentials
    - Provides real-time connection status feedback through BLE notifications
    - Uses chunked data transfer to handle larger credential payloads
+   - Exposes device ID via BLE for device identification during setup
 
-3. **Visual Feedback**
+3. **Timer Functionality**
+   - Syncs with an online timer service to fetch countdown settings
+   - Maintains local cache of timer data for offline operation
+   - Updates countdown in real-time
+   - Broadcasts time changes via event system for display and LED updates
+
+4. **Visual Feedback**
    - Uses a PWM-controlled LED that fades in/out during pairing mode
    - LED fading indicates the device is ready to receive WiFi credentials
 
-4. **Factory Reset**
+5. **Factory Reset**
    - Includes a physical button for factory reset functionality
    - Holding the button for >1 second triggers a factory reset
    - Reset clears stored WiFi credentials
+   - Short button press triggers timer reset events
+
+6. **Event System**
+   - Implements a publish-subscribe event bus
+   - Components communicate through events for loose coupling
+   - Handles system events like pairing mode, WiFi reset, time changes
 
 ## Component Breakdown
 
 - `Application`: Main controller class that orchestrates the overall flow
-- `BLEDevice`: Handles BLE communication and credential reception
+- `BLEDevice`: Handles BLE communication, device identification, and credential reception
 - `WifiConnection`: Manages WiFi connectivity and credential storage
-- `LEDFader`: Controls LED animations for visual feedback
+- `CountdownTimer`: Manages timer state and synchronization with online service
+- `API`: Handles communication with the online timer service
+- `LEDController`: Manages LED animations and visual feedback
+- `LEDFader`: Controls PWM-based LED fading effects
 - `Button`: Handles button input and duration-based actions
+- `EventBus`: Provides publish-subscribe event system
 - `Config`: Centralizes configuration settings
+- `DeviceID`: Manages unique device identification
 
 ## Current State
 
