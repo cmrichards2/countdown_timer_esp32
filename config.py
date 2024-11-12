@@ -14,6 +14,9 @@ class Config:
 
     # Device ID settings
     DEVICE_ID_FILE = "dev_id.json"
+
+    # API settings
+    TIMER_JSON_FILE = "timer.json"
     
     # Pin configurations
     LED_PIN = 13

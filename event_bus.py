@@ -31,6 +31,8 @@ class Events:
     """Constants for all application events"""
     ENTERING_PAIRING_MODE = 'ENTERING_PAIRING_MODE'
     EXITING_PAIRING_MODE = 'EXITING_PAIRING_MODE'
+    WIFI_RESET = 'WIFI_RESET'
+    TIME_CHANGED = 'TIME_CHANGED'
     # Future events can be added here
     # TIMER_STARTED = 'TIMER_STARTED'
     # TIMER_EXPIRED = 'TIMER_EXPIRED'

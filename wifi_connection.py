@@ -3,6 +3,7 @@ import time
 import json
 import os
 from config import Config
+from event_bus import event_bus, Events
 
 class WifiConnection:
     def __init__(self, credentials_file):
@@ -77,3 +78,4 @@ class WifiConnection:
             os.remove(self.credentials_file)
         except:
             pass
+        event_bus.publish(Events.WIFI_RESET)

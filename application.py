@@ -5,6 +5,8 @@ from wifi_connection import WifiConnection
 from config import Config
 from led_controller import LedController
 from event_bus import event_bus, Events
+from countdown_timer import CountdownTimer
+from device_id import DeviceID
 
 # This application class is the main entry point for the application.
 # It handles entering pairing mode, connecting to WiFi, and starting the main application loop.
@@ -44,12 +46,9 @@ class Application:
 
     # Todo: add main application logic here
     def start_main_loop(self):
-        while True:
-            time.sleep(1)
-            print("Main loop - ToDo: main application logic here")
-            if not self.wifi.is_connected():
-                print("Wifi connection lost, entering pairing mode")
-                break
+        self.countdown_timer = CountdownTimer(DeviceID.get_id())
+        self.countdown_timer.start()
+        self.countdown_timer = None
 
     def enter_pairing_mode(self):
         event_bus.publish(Events.ENTERING_PAIRING_MODE)
