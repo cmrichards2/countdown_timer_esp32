@@ -8,6 +8,7 @@ from bleak import BleakClient, BleakScanner
 SERVICE_UUID = "0000180F-0000-1000-8000-00805F9B34FB"
 WIFI_CREDENTIALS_UUID = "00002A1A-0000-1000-8000-00805F9B34FB"
 WIFI_STATUS_UUID = "00002A1B-0000-1000-8000-00805F9B34FB"  # New UUID for status
+DEVICE_ID_UUID = "00002A1C-0000-1000-8000-00805F9B34FB"
 
 ESP32_DEVICE_NAME = "ESP32_Device"  # The name you gave your ESP32's Bluetooth GAP
 
@@ -15,6 +16,10 @@ ESP32_DEVICE_NAME = "ESP32_Device"  # The name you gave your ESP32's Bluetooth G
 def notification_handler(sender: int, data: bytearray):
     status = data.decode()
     print(f"WiFi Status Update: {status}")
+
+    # When we get CONNECTED status, read and print the device ID
+    if status == "CONNECTED":
+        print("WiFi connected! Reading device ID...")
 
 async def connect_and_send_wifi_credentials(ssid: str, password: str):
     # Discover devices
@@ -33,6 +38,11 @@ async def connect_and_send_wifi_credentials(ssid: str, password: str):
     # Connect to the ESP32 device
     async with BleakClient(esp32_device.address) as client:
         print(f"Connected to {ESP32_DEVICE_NAME}")
+
+        # Read device ID after successful connection
+        device_id = await client.read_gatt_char(DEVICE_ID_UUID)
+        device_id_str = device_id.decode()
+        print(f"Device ID: {device_id_str}")
 
         # Subscribe to notifications
         await client.start_notify(WIFI_STATUS_UUID, notification_handler)
@@ -59,7 +69,7 @@ async def connect_and_send_wifi_credentials(ssid: str, password: str):
 
         # Wait a bit to receive status updates
         print("Waiting for WiFi connection status...")
-        await asyncio.sleep(15)  # Wait up to 15 seconds for status updates
+        await asyncio.sleep(5)  # Give it time to connect
 
         # Unsubscribe from notifications
         if client.is_connected:

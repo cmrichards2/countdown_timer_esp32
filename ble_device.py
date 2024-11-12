@@ -2,6 +2,7 @@ import ubluetooth
 import ble_advertising
 import time
 from config import Config
+from device_id import DeviceID
 
 class BLEDevice:
     def __init__(self, name, handle_wifi_credentials):
@@ -12,6 +13,7 @@ class BLEDevice:
         self.wifi_ssid = None
         self.wifi_pass = None
         self.received_data = bytearray()
+        self.device_id = DeviceID.get_id()
 
         self.setup_bluetooth_service()
         self.start_bluetooth_advertising()
@@ -27,6 +29,7 @@ class BLEDevice:
         SERVICE_UUID = ubluetooth.UUID(Config.BLE_SERVICE_UUID)
         WIFI_CREDENTIALS_UUID = ubluetooth.UUID(Config.BLE_WIFI_CREDENTIALS_UUID)
         WIFI_STATUS_UUID = ubluetooth.UUID(Config.BLE_WIFI_STATUS_UUID)
+        DEVICE_ID_UUID = ubluetooth.UUID(Config.BLE_DEVICE_ID_UUID)
 
         # Initialize BLE radio and set it to active
         self.ble = ubluetooth.BLE()
@@ -51,13 +54,17 @@ class BLEDevice:
             (
                 (WIFI_CREDENTIALS_UUID, ubluetooth.FLAG_WRITE),  # Clients can write WiFi credentials
                 (WIFI_STATUS_UUID, ubluetooth.FLAG_NOTIFY),      # We can notify clients about WiFi status
+                (DEVICE_ID_UUID, ubluetooth.FLAG_READ),  # New characteristic
             )
         )
         
         # Register the service with the BLE stack
         # This returns handles (unique identifiers) that we'll use to reference 
         # specific characteristics when reading/writing/notifying
-        ((self.wifi_credentials_handle, self.wifi_status_handle),) = self.ble.gatts_register_services((self.service,))
+        ((self.wifi_credentials_handle, self.wifi_status_handle, self.device_id_handle),) = self.ble.gatts_register_services((self.service,))
+        
+        # Set the initial device ID value
+        self.ble.gatts_write(self.device_id_handle, self.device_id.encode())
     
     def disconnect(self):
         self.ble.gap_advertise(0, None)
