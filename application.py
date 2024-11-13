@@ -43,8 +43,6 @@ class Application:
         """Start background reconnection attempts when WiFi disconnects"""
         self.wifi.start_reconnection_timer()
 
-    # When the button is held for the factory reset duration, the WiFi credentials are reset which
-    # will make the device enter pairing mode again.
     def on_button_pressed(self, duration):
         if duration > Config.FACTORY_RESET_DURATION_MS:
             print("Button is pressed! Factory reset!")
