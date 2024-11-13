@@ -78,6 +78,7 @@ class BLEDevice:
         while not self.wifi_connected:
             time.sleep(3)
             self.show_status()
+        time.sleep(1)
         self.disconnect()
 
     def start_bluetooth_advertising(self):

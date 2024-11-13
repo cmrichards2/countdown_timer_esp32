@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 WiFi Setup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #ccc;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>ESP32 WiFi Setup</h1>
+    <div class="form-group">
+        <label for="ssid">WiFi SSID:</label>
+        <input type="text" id="ssid" placeholder="Enter WiFi network name" value="Nest Router">
+    </div>
+    <div class="form-group">
+        <label for="password">WiFi Password:</label>
+        <input type="password" id="password" placeholder="Enter WiFi password" value="ACRES-let-neat">
+    </div>
+    <button id="connectBtn" onclick="connectToDevice()">Connect to ESP32</button>
+    <div id="status"></div>
+
+    <script>
+        // UUIDs matching those in the ESP32 code
+        const SERVICE_UUID = "0000180F-0000-1000-8000-00805F9B34FB";
+        const WIFI_CREDENTIALS_UUID = "00002A1A-0000-1000-8000-00805F9B34FB";
+        const WIFI_STATUS_UUID = "00002A1B-0000-1000-8000-00805F9B34FB";
+        const DEVICE_ID_UUID = "00002A1C-0000-1000-8000-00805F9B34FB";
+
+        let device = null;
+        let server = null;
+        let service = null;
+
+        function updateStatus(message, isError = false) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = isError ? 'error' : 'success';
+        }
+
+        async function connectToDevice() {
+            try {
+                updateStatus('Searching for ESP32 device...');
+                
+                // Request the device with the specific service UUID
+                device = await navigator.bluetooth.requestDevice({
+                    filters: [{
+                        name: 'ESP32_Device',
+                        optionalServices: [SERVICE_UUID.toLowerCase()]
+                    }]
+                });
+
+                updateStatus('Device found. Connecting...');
+                
+                // Connect to the device
+                server = await device.gatt.connect();
+                
+                // Get the service
+                service = await server.getPrimaryService(SERVICE_UUID.toLowerCase());
+                
+                // Get the characteristics
+                const wifiCredentialsChar = await service.getCharacteristic(WIFI_CREDENTIALS_UUID.toLowerCase());
+                console.log("Got wifi credentials characteristic");
+                const wifiStatusChar = await service.getCharacteristic(WIFI_STATUS_UUID.toLowerCase());
+                console.log("Got wifi status characteristic");
+                const deviceIdChar = await service.getCharacteristic(DEVICE_ID_UUID.toLowerCase());
+                console.log("Got device ID characteristic");
+
+                // Read device ID
+                const deviceIdValue = await deviceIdChar.readValue();
+                const deviceId = new TextDecoder().decode(deviceIdValue);
+                console.log(`Connected to device: ${deviceId}`);
+                console.log(`Device ID: ${deviceIdValue}`);
+                updateStatus(`Connected to device: ${deviceId}`);
+
+                // Subscribe to WiFi status notifications
+                await wifiStatusChar.startNotifications();
+                wifiStatusChar.addEventListener('characteristicvaluechanged', handleWifiStatus);
+
+                // Send WiFi credentials
+                await sendWifiCredentials(wifiCredentialsChar);
+
+            } catch (error) {
+                updateStatus(`Error: ${error}`, true);
+                console.error(error);
+            }
+        }
+
+        async function sendWifiCredentials(characteristic) {
+            const ssid = document.getElementById('ssid').value;
+            const password = document.getElementById('password').value;
+
+            if (!ssid || !password) {
+                updateStatus('Please enter both SSID and password', true);
+                return;
+            }
+
+            try {
+                updateStatus('Sending WiFi credentials...');
+                
+                // Prepare the credentials string
+                const credentials = `${ssid}|${password}`;
+                const encoder = new TextEncoder();
+                const data = encoder.encode(credentials);
+
+                // Get the MTU size (assuming 20 bytes for BLE standard)
+                const MTU = 20;
+
+                // Split data into chunks
+                for (let i = 0; i < data.length; i += MTU) {
+                    const chunk = data.slice(i, i + MTU);
+                    await characteristic.writeValue(chunk);
+                }
+
+                // Send END marker
+                await characteristic.writeValue(encoder.encode('END'));
+                
+                updateStatus('Credentials sent. Waiting for connection status...');
+
+            } catch (error) {
+                updateStatus(`Error sending credentials: ${error}`, true);
+                console.error(error);
+            }
+        }
+
+        function handleWifiStatus(event) {
+            const status = new TextDecoder().decode(event.target.value);
+            
+            switch (status) {
+                case 'CONNECTING':
+                    updateStatus('Connecting to WiFi network...');
+                    break;
+                case 'CONNECTED':
+                    updateStatus('Successfully connected to WiFi!');
+                    // Disconnect BLE after successful WiFi connection
+                    if (device) {
+                        device.gatt.disconnect();
+                    }
+                    break;
+                case 'FAILED':
+                    updateStatus('Failed to connect to WiFi network', true);
+                    break;
+                default:
+                    updateStatus(`Unknown status: ${status}`, true);
+            }
+        }
+    </script>
+</body>
+</html> 
