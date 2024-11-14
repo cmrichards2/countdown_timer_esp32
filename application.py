@@ -56,8 +56,14 @@ class Application:
         countdown_timer.start()
 
     def enter_wifi_provisioning_mode(self):
-        ble_device = BLEDevice(Config.BLE_NAME_PREFIX, self.try_wifi_credentials)
-        ble_device.await_wifi_credentials_then_disconnect()
+        """Enter WiFi provisioning mode using either BLE or SoftAP"""
+        if Config.DEFAULT_PROVISIONING_MODE == Config.PROVISIONING_MODE_BLE:
+            ble_device = BLEDevice(Config.BLE_NAME_PREFIX, self.try_wifi_credentials)
+            ble_device.await_wifi_credentials_then_disconnect()
+        else:
+            from soft_ap_provisioning import SoftAPProvisioning
+            ap_provisioning = SoftAPProvisioning(self.try_wifi_credentials)
+            ap_provisioning.start()
 
     def try_wifi_credentials(self, wifi_ssid, wifi_pass, notify_wifi_status):
         """

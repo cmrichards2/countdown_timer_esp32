@@ -82,6 +82,8 @@ class WifiConnection:
         if not self.wifi_ssid or not self.wifi_pass:
             return False
 
+        print(f"Connecting to WiFi with SSID: {self.wifi_ssid} and password: {self.wifi_pass}")
+
         if self.wlan and self.wlan.isconnected():
             return True
             
