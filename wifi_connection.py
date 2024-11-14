@@ -50,6 +50,7 @@ class WifiConnection:
 
     def _try_reconnect(self, timer):
         """Attempt to reconnect to WiFi if disconnected"""
+        print("testing-connection")
         if not self.is_connected() and self.wifi_ssid and self.wifi_pass:
             print("Wifi has been disconnected, attempting to reconnect...")
             if self.connect():
@@ -91,6 +92,8 @@ class WifiConnection:
             return False
 
     def disconnect(self):
+        if self.reconnect_timer:
+            self.reconnect_timer.deinit()
         if self.wlan:
             self.wlan.disconnect()
             self.wlan = None
@@ -100,6 +103,8 @@ class WifiConnection:
 
     def reset(self):
         self.disconnect()
+        self.wifi_ssid = None
+        self.wifi_pass = None
         try:
             os.remove(self.credentials_file)
         except:

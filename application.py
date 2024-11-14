@@ -32,12 +32,14 @@ class Application:
         3. If no credentials exist, enter pairing mode
         """
         while True:
+            print("Application loop")
             if self.wifi.load_credentials():
                 self.wifi.connect_and_monitor_connection()
-                self.start_main_loop()
+                print("Starting main loop")
+                self.start_countdown_timer()
             else:
                 print("No stored credentials")
-                self.enter_pairing_mode()
+                self.enter_wifi_provisioning_mode()
 
     def start_reconnection_timer(self):
         """Start background reconnection attempts when WiFi disconnects"""
@@ -56,17 +58,14 @@ class Application:
 
         if duration < Config.BUTTON_TAP_DURATION_MS:
             event_bus.publish(Events.BUTTON_TAPPED)
-    
-    def _factory_reset(self):
-        CountdownTimer.clear_data()
 
     # Todo: add main application logic here
-    def start_main_loop(self):
+    def start_countdown_timer(self):
         self.countdown_timer = CountdownTimer(DeviceID.get_id())
         self.countdown_timer.start()
         self.countdown_timer = None
 
-    def enter_pairing_mode(self):
+    def enter_wifi_provisioning_mode(self):
         self.ble_device = BLEDevice(self.bluetooth_name, self.try_wifi_credentials)
         self.ble_device.await_wifi_credentials_then_disconnect()
         self.ble_device = None
@@ -92,3 +91,6 @@ class Application:
         else:
             notify_wifi_status(b"FAILED")
             return False
+    
+    def _factory_reset(self):
+        CountdownTimer.clear_data()

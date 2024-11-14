@@ -3,15 +3,20 @@ from config import Config
 from api import API
 from event_bus import event_bus, Events
 import utime
+import sys
 
 class CountdownTimer:
     def __init__(self, device_id):
-        self.device_id = device_id
-        self.api = API()
-        self.timer_data = None
-        self.abort = False
-        self.__fetch_timer_settings()
-        self.__subscribe()
+        try:
+            self.device_id = device_id
+            self.api = API()
+            self.timer_data = None
+            self.abort = False
+            self.__fetch_timer_settings()
+            self.__subscribe()
+        except Exception as e:
+            print(f"Error initializing countdown timer: {e}")
+            sys.print_exception(e)
 
     @staticmethod
     def clear_data():

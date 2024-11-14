@@ -13,8 +13,11 @@ class API:
     @staticmethod
     def clear_cache():
         """Clear the timer data from the API"""
-        if os.path.exists(Config.TIMER_JSON_FILE):
+        try:
             os.remove(Config.TIMER_JSON_FILE)
+        except:
+            pass
+
     
     def get_timer_for_device(self, device_id):
         """

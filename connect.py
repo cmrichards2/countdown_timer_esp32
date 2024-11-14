@@ -69,7 +69,7 @@ async def connect_and_send_wifi_credentials(ssid: str, password: str):
 
         # Wait a bit to receive status updates
         print("Waiting for WiFi connection status...")
-        await asyncio.sleep(5)  # Give it time to connect
+        await asyncio.sleep(11)  # Give it time to connect
 
         # Unsubscribe from notifications
         if client.is_connected:
