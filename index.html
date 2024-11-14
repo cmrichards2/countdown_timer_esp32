@@ -66,16 +66,17 @@
 
     <script>
         // UUIDs matching those in the ESP32 code
-        const SERVICE_UUID = "0000180F-0000-1000-8000-00805F9B34FB";
-        const WIFI_CREDENTIALS_UUID = "00002A1A-0000-1000-8000-00805F9B34FB";
-        const WIFI_STATUS_UUID = "00002A1B-0000-1000-8000-00805F9B34FB";
-        const DEVICE_ID_UUID = "00002A1C-0000-1000-8000-00805F9B34FB";
+        const SERVICE_UUID = "0000180F-0000-1000-8000-00805F9B34FB".toLowerCase();
+        const WIFI_CREDENTIALS_UUID = "00002A1A-0000-1000-8000-00805F9B34FB".toLowerCase();
+        const WIFI_STATUS_UUID = "00002A1B-0000-1000-8000-00805F9B34FB".toLowerCase();
+        const DEVICE_ID_UUID = "00002A1C-0000-1000-8000-00805F9B34FB".toLowerCase();
 
         let device = null;
         let server = null;
         let service = null;
 
         function updateStatus(message, isError = false) {
+            console.log(message);
             const statusDiv = document.getElementById('status');
             statusDiv.textContent = message;
             statusDiv.className = isError ? 'error' : 'success';
@@ -89,7 +90,7 @@
                 device = await navigator.bluetooth.requestDevice({
                     filters: [{
                         name: 'ESP32_Device',
-                        optionalServices: [SERVICE_UUID.toLowerCase()]
+                        services: [SERVICE_UUID.toLowerCase()]
                     }]
                 });
 
@@ -100,6 +101,8 @@
                 
                 // Get the service
                 service = await server.getPrimaryService(SERVICE_UUID.toLowerCase());
+
+                updateStatus('Service found. Getting characteristics...');
                 
                 // Get the characteristics
                 const wifiCredentialsChar = await service.getCharacteristic(WIFI_CREDENTIALS_UUID.toLowerCase());
@@ -125,7 +128,7 @@
 
             } catch (error) {
                 updateStatus(`Error: ${error}`, true);
-                console.error(error);
+                console.error(error, error.stack);
             }
         }
 

@@ -19,6 +19,24 @@ class WifiConnection:
         event_bus.subscribe(Events.FACTORY_RESET_BUTTON_PRESSED, self.reset)
         event_bus.subscribe(Events.SOFT_RESET_BUTTON_PRESSED, self.reset)
 
+    def reset(self):
+        """Reset the WiFi connection and clear credentials file"""
+        self.disconnect()
+        self.wifi_ssid = None
+        self.wifi_pass = None
+        try:
+            os.remove(self.credentials_file)
+        except:
+            pass
+        event_bus.publish(Events.WIFI_RESET)
+
+    def has_saved_credentials(self):
+        try:
+            os.stat(self.credentials_file)
+            return True
+        except OSError:
+            return False
+
     def load_credentials(self):
         try:
             with open(self.credentials_file, 'r') as f:
@@ -40,6 +58,7 @@ class WifiConnection:
             print(f"Error saving credentials: {e}")
 
     def connect_and_monitor_connection(self):
+        self.load_credentials()
         self.connect()
         self._monitor_connection()
 
@@ -50,7 +69,6 @@ class WifiConnection:
 
     def _try_reconnect(self, timer):
         """Attempt to reconnect to WiFi if disconnected"""
-        print("testing-connection")
         if not self.is_connected() and self.wifi_ssid and self.wifi_pass:
             print("Wifi has been disconnected, attempting to reconnect...")
             if self.connect():
@@ -99,14 +117,5 @@ class WifiConnection:
             self.wlan = None
 
     def is_connected(self):
+        """Check if there is an active WiFi connection"""
         return self.wlan is not None and self.wlan.isconnected()
-
-    def reset(self):
-        self.disconnect()
-        self.wifi_ssid = None
-        self.wifi_pass = None
-        try:
-            os.remove(self.credentials_file)
-        except:
-            pass
-        event_bus.publish(Events.WIFI_RESET)

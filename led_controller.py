@@ -3,6 +3,9 @@ from config import Config
 from event_bus import event_bus, Events
 
 class LedController:
+    """
+    This LED controller listens for events published to the event bus and controls the LED accordingly.
+    """
     def __init__(self):
         self.led_fader = None
         event_bus.subscribe(Events.ENTERING_PAIRING_MODE, self.entering_pairing_mode)

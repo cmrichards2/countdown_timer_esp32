@@ -7,6 +7,7 @@ from device_id import DeviceID
 from event_bus import event_bus, Events
 from machine import Timer
 from micropython import const
+from wifi_credential_handler import WifiCredentialHandler
 
 class BLEDevice:
     def __init__(self, name, handle_wifi_credentials):
@@ -18,12 +19,11 @@ class BLEDevice:
         self.wifi_pass = None
         self.received_data = bytearray()
         self.device_id = DeviceID.get_id()
-        self.pending_credentials = None
-        self.waiting_for_button = False
-        self.timer = None
+        self.wifi_handler = WifiCredentialHandler(self.notify_wifi_status)
         
-        self.__subscribe()
+        event_bus.publish(Events.ENTERING_PAIRING_MODE)
 
+        self.__subscribe()
         self.setup_bluetooth_service()
         self.start_bluetooth_advertising()
 
@@ -33,6 +33,27 @@ class BLEDevice:
 
     def __unsubscribe(self):
         event_bus.unsubscribe(Events.BUTTON_TAPPED, self._handle_button_tap)
+    
+    def await_wifi_credentials_then_disconnect(self):
+        while not self.wifi_connected:
+            time.sleep(3)
+            self.show_status()
+        print("[BLE] wifi connection established, disconnecting bluetooth...")
+        time.sleep(1)
+        self.disconnect()
+    
+    def disconnect(self):
+        print("[BLE] disconneting")
+        self.__unsubscribe()
+        self._deactivate_bluetooth()
+        self.wifi_handler.cancel_confirmation()
+        event_bus.publish(Events.EXITING_PAIRING_MODE)
+        print("[BLE] disconnected")
+
+    def _handle_button_tap(self):
+        if self.wifi_handler.handle_button_tap(self.handle_wifi_credentials):
+            self.wifi_connected = True
+        self.received_data = bytearray()
     
     def setup_bluetooth_service(self):
         # BLE operates using Services and Characteristics:
@@ -81,30 +102,17 @@ class BLEDevice:
         
         # Set the initial device ID value
         self.ble.gatts_write(self.device_id_handle, self.device_id.encode())
-        event_bus.publish(Events.ENTERING_PAIRING_MODE)
-    
-    def disconnect(self):
-        self.__unsubscribe()
-        if self.timer:
-            self.timer.deinit()
+
+    def _deactivate_bluetooth(self):
+        print("[BLE] deactivating bluetooth service")
         self.ble.gap_advertise(0, None)
         self.ble.active(False)
         self.ble = None
-        event_bus.publish(Events.EXITING_PAIRING_MODE)
-        print("Disconnected ble")
-    
-    def await_wifi_credentials_then_disconnect(self):
-        while not self.wifi_connected:
-            time.sleep(3)
-            self.show_status()
-        time.sleep(1)
-        print("Disconnecting.. wifi connected")
-        self.disconnect()
 
     def start_bluetooth_advertising(self):
         adv_data = ble_advertising.advertising_payload(name=self.name)
         self.ble.gap_advertise(Config.BLE_ADVERTISING_INTERVAL_MS, adv_data)
-        print(f"Advertising as '{self.name}'")        
+        print(f"[BLE] advertising bluetooth device as '{self.name}'")        
     
     def notify_wifi_status(self, status):
         """Notify connected clients about WiFi connection status changes"""
@@ -123,14 +131,13 @@ class BLEDevice:
         if event == BLE_DISCONNECT:
             print("BLE: disconnected")
             self.received_data = bytearray()
-            self.pending_credentials = None
-            self.waiting_for_button = False
-            if self.timer:
-                self.timer.deinit()
-            self.start_bluetooth_advertising()
+            self.wifi_handler.cancel_confirmation()
+            if not self.wifi_connected:
+                self.start_bluetooth_advertising()
             return
 
         if event == BLE_WRITE:
+            print("BLE: client is writing wifi credentials")
             self._handle_write_wifi_credentials_event()
 
     def _handle_write_wifi_credentials_event(self):
@@ -141,83 +148,25 @@ class BLEDevice:
 
         try:
             if buffer == b"END":
-                # Instead of processing immediately, store credentials and wait for button
                 decoded = self.received_data.decode("utf-8")
-                print("Received credentials. Waiting for button tap confirmation...")
-                self.notify_wifi_status(b"WAITING_CONFIRMATION")
-                
-                self.pending_credentials = decoded
-                self.waiting_for_button = True
-                
-                # Start a 10-second timer
-                self.confirmation_start_time = time.ticks_ms()
-                self.timer = Timer(-1)
-                self.timer.init(
-                    period=Config.PROVISIONING_BUTTON_CONFIRMATION_DURATION_MS, 
-                    mode=Timer.ONE_SHOT, 
-                    callback=self._stop_waiting_for_confirmation
-                )
+                self.wifi_handler.process_credentials(decoded)
+                self.received_data = bytearray()
             else:
-                # Append the chunk to received_data
                 self.received_data.extend(buffer)
                 print(f"Received chunk, current length: {len(self.received_data)}")
         except Exception as e:
             print(f"Error processing data: {e}")
             sys.print_exception(e)
 
-    def _stop_waiting_for_confirmation(self, timer):
-        print("Stop waiting for confirmation")
-        timer.deinit()
-        if self.waiting_for_button:
-            self.waiting_for_button = False
-            self.pending_credentials = None
-            self.received_data = bytearray()
-
-    def _handle_button_tap(self):
-        print("tapped")
-        if not self.waiting_for_button or not self.pending_credentials:
-            print("No pending credentials or not waiting for button confirmation")
-            return
-            
-        # Check if we're still within the 10-second window
-        if time.ticks_diff(time.ticks_ms(), self.confirmation_start_time) > Config.PROVISIONING_BUTTON_CONFIRMATION_DURATION_MS:
-            print("Confirmation timeout - credentials rejected")
-            self.notify_wifi_status(b"TIMEOUT")
-            self.pending_credentials = None
-            self.waiting_for_button = False
-            self.received_data = bytearray()
-            return
-
-        print("Button tapped - processing credentials")
-        decoded = self.pending_credentials
-        creds = decoded.split("|")
-        if len(creds) != 2:
-            print("Invalid credential format")
-            self.notify_wifi_status(b"INVALID_FORMAT")
-            self.pending_credentials = None
-            self.waiting_for_button = False
-            self.received_data = bytearray()
-            return
-
-        self.wifi_ssid, self.wifi_pass = creds
-        print(f"SSID: {self.wifi_ssid}, Password: {self.wifi_pass}")
-        
-        if self.handle_wifi_credentials(self.wifi_ssid, self.wifi_pass, self.notify_wifi_status):
-            self.wifi_connected = True
-        
-        self.pending_credentials = None
-        self.waiting_for_button = False
-        self.received_data = bytearray()
-
     def _waiting_for_button_status(self):
-        return self.waiting_for_button and time.ticks_diff(time.ticks_ms(), self.confirmation_start_time) < Config.PROVISIONING_BUTTON_CONFIRMATION_DURATION_MS
+        return self.wifi_handler.is_waiting_for_confirmation()
 
     def show_status(self):
         output = ""
         if self.ble.active():
-            output += "BLE connected. "
+            output += "BLE: is connected"
         else:
-            output += "BLE disconnected. "
+            output += "BLE: is disconnected"
         if self.wlan is not None and self.wlan.isconnected():
             output += "WiFi connected. "
         if self._waiting_for_button_status():

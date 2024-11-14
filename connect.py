@@ -69,7 +69,7 @@ async def connect_and_send_wifi_credentials(ssid: str, password: str):
 
         # Wait a bit to receive status updates
         print("Waiting for WiFi connection status...")
-        await asyncio.sleep(11)  # Give it time to connect
+        await asyncio.sleep(15)  # Give it time to connect
 
         # Unsubscribe from notifications
         if client.is_connected:
@@ -85,5 +85,12 @@ async def connect_and_send_wifi_credentials(ssid: str, password: str):
 wifi_ssid = "Nest Router"       # Replace with your Wi-Fi SSID
 wifi_password = "ACRES-let-neat" # Replace with your Wi-Fi password
 
+async def main():
+    while True:
+        print("Press Enter to search for ESP32 devices...")
+        input()
+        await connect_and_send_wifi_credentials(wifi_ssid, wifi_password)
+        print("\n--- Ready for next device ---\n")
+
 # Run the BLE connection and send credentials
-asyncio.run(connect_and_send_wifi_credentials(wifi_ssid, wifi_password))
+asyncio.run(main())

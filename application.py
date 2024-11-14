@@ -9,14 +9,12 @@ from countdown_timer import CountdownTimer
 from device_id import DeviceID
 
 # This application class is the main entry point for the application.
-# It handles entering pairing mode, connecting to WiFi, and starting the main application loop.
+# It handles entering provisioning mode, connecting to WiFi, and starting the main application logic.
 
 class Application:
-    def __init__(self, bluetooth_name):
-        self.bluetooth_name = bluetooth_name
+    def __init__(self):
         self.button = Button(Config.BUTTON_PIN, self.on_button_pressed)
         self.wifi = WifiConnection(Config.WIFI_CREDENTIALS_FILE)
-        self.ble_device = None
         self.led_controller = LedController()
         self.__subscribe()
     
@@ -29,21 +27,14 @@ class Application:
         
         1. Check if WiFi credentials exist
         2. If credentials exist, attempt connection and start main loop regardless of result
-        3. If no credentials exist, enter pairing mode
+        3. If no credentials exist, enter provisioning mode
         """
         while True:
-            print("Application loop")
-            if self.wifi.load_credentials():
+            if self.wifi.has_saved_credentials():
                 self.wifi.connect_and_monitor_connection()
-                print("Starting main loop")
                 self.start_countdown_timer()
             else:
-                print("No stored credentials")
                 self.enter_wifi_provisioning_mode()
-
-    def start_reconnection_timer(self):
-        """Start background reconnection attempts when WiFi disconnects"""
-        self.wifi.start_reconnection_timer()
 
     def on_button_pressed(self, duration):
         if duration > Config.FACTORY_RESET_DURATION_MS:
@@ -61,14 +52,12 @@ class Application:
 
     # Todo: add main application logic here
     def start_countdown_timer(self):
-        self.countdown_timer = CountdownTimer(DeviceID.get_id())
-        self.countdown_timer.start()
-        self.countdown_timer = None
+        countdown_timer = CountdownTimer(DeviceID.get_id())
+        countdown_timer.start()
 
     def enter_wifi_provisioning_mode(self):
-        self.ble_device = BLEDevice(self.bluetooth_name, self.try_wifi_credentials)
-        self.ble_device.await_wifi_credentials_then_disconnect()
-        self.ble_device = None
+        ble_device = BLEDevice(Config.BLE_NAME_PREFIX, self.try_wifi_credentials)
+        ble_device.await_wifi_credentials_then_disconnect()
 
     def try_wifi_credentials(self, wifi_ssid, wifi_pass, notify_wifi_status):
         """
