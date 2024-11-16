@@ -6,12 +6,12 @@ class Button:
     # The on_press handler triggers when button is released, passing the duration held.
     def __init__(self, pin, on_press):
         self.pin = Pin(pin, Pin.IN, Pin.PULL_DOWN)
-        self.pin.irq(trigger=Pin.IRQ_FALLING | Pin.IRQ_RISING, handler=self.button_handler)
+        self.pin.irq(trigger=Pin.IRQ_FALLING | Pin.IRQ_RISING, handler=self._button_handler)
         self.on_press = on_press
         self.press_start_time = 0
         self.is_pressed = False
 
-    def button_handler(self, pin):
+    def _button_handler(self, pin):
         current_time = time.ticks_ms()
         if pin.value() == True and not self.is_pressed:
             self.press_start_time = current_time

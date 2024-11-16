@@ -17,13 +17,13 @@ class Application:
     """
 
     def __init__(self):
-        self.button = Button(Config.BUTTON_PIN, self.on_button_pressed)
+        self.button = Button(Config.BUTTON_PIN, self._on_button_pressed)
         self.wifi = WifiConnection(Config.WIFI_CREDENTIALS_FILE)
         self.led_controller = LedController()
         self.provisioning_mode = Config.DEFAULT_PROVISIONING_MODE
-        self.__subscribe()
+        self._subscribe()
     
-    def __subscribe(self):
+    def _subscribe(self):
         event_bus.subscribe(Events.FACTORY_RESET_BUTTON_PRESSED, self._factory_reset)
     
     def start(self):
@@ -37,12 +37,12 @@ class Application:
         while True:
             if self.wifi.has_saved_credentials():
                 self.wifi.connect_and_monitor_connection()
-                self.start_countdown_timer()
+                self._start_countdown_timer()
             else:
-                self.enter_wifi_provisioning_mode()
+                self._enter_wifi_provisioning_mode()
             gc.collect()
 
-    def on_button_pressed(self, duration):
+    def _on_button_pressed(self, duration):
         if duration > Config.FACTORY_RESET_DURATION_MS:
             print("[APP] Button is pressed! Factory reset! Entering Bluetooth provisioning mode")
             self.provisioning_mode = Config.PROVISIONING_MODE_BLE
@@ -58,23 +58,23 @@ class Application:
         if duration < Config.BUTTON_TAP_DURATION_MS:
             event_bus.publish(Events.BUTTON_TAPPED)
 
-    def start_countdown_timer(self):
+    def _start_countdown_timer(self):
         countdown_timer = CountdownTimer(DeviceID.get_id())
         countdown_timer.start()
 
-    def enter_wifi_provisioning_mode(self):
+    def _enter_wifi_provisioning_mode(self):
         """
         Enter WiFi provisioning mode using either BLE or SoftAP.
         In provisioning mode, an external device can connect to the ESP32 and provide WiFi credentials and a device short code.
         """
         if Config.DEFAULT_PROVISIONING_MODE == Config.PROVISIONING_MODE_BLE:
-            ble_device = BLEDevice(Config.BLE_NAME_PREFIX, self.try_wifi_credentials)
+            ble_device = BLEDevice(Config.BLE_NAME_PREFIX, self._try_wifi_credentials)
             ble_device.await_wifi_credentials_then_disconnect()
         else:
-            ap_provisioning = SoftAPProvisioning(self.try_wifi_credentials)
+            ap_provisioning = SoftAPProvisioning(self._try_wifi_credentials)
             ap_provisioning.start()
 
-    def try_wifi_credentials(self, wifi_ssid, wifi_pass, short_code, notify_wifi_status):
+    def _try_wifi_credentials(self, wifi_ssid, wifi_pass, short_code, notify_wifi_status):
         """
         Try to connect to WiFi using the provided credentials provided over the Wifi connection.
         If the connection is successful and the device registration using the short code is successful,

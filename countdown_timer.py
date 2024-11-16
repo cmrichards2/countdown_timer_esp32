@@ -11,21 +11,21 @@ class CountdownTimer:
         self.device_id = device_id
         self.api = API()
         self.display = TimerDisplay()
-        self.timer_data = self.api.get_cached_timer()
         self.abort = False
         self.last_fetched_timer_data_from_api = 0  
-        self.__fetch_timer_settings()
-        self.__subscribe()
+        self.timer_data = self.api.get_cached_timer()
+        self._fetch_timer_settings()
+        self._subscribe()
 
-    def __subscribe(self):
-        event_bus.subscribe(Events.TIME_CHANGED, self.__update_display)
-        event_bus.subscribe(Events.WIFI_RESET, self.__abort_timer)
-        event_bus.subscribe(Events.BUTTON_TAPPED, self.__restart_timer)
+    def _subscribe(self):
+        event_bus.subscribe(Events.TIME_CHANGED, self._update_display)
+        event_bus.subscribe(Events.WIFI_RESET, self._abort_timer)
+        event_bus.subscribe(Events.BUTTON_TAPPED, self._restart_timer)
 
-    def __unsubscribe(self):
-        event_bus.unsubscribe(Events.TIME_CHANGED, self.__update_display)
-        event_bus.unsubscribe(Events.WIFI_RESET, self.__abort_timer)
-        event_bus.unsubscribe(Events.BUTTON_TAPPED, self.__restart_timer)
+    def _unsubscribe(self):
+        event_bus.unsubscribe(Events.TIME_CHANGED, self._update_display)
+        event_bus.unsubscribe(Events.WIFI_RESET, self._abort_timer)
+        event_bus.unsubscribe(Events.BUTTON_TAPPED, self._restart_timer)
 
     @staticmethod
     def clear_data():
@@ -47,21 +47,21 @@ class CountdownTimer:
             if "end_time" not in self.timer_data:
                 # The timer data has never been successfully loaded from the API,
                 # not even once. Try again every minute.
-                self.__fetch_timer_settings()
+                self._fetch_timer_settings()
                 time.sleep(60) 
                 continue
             
             # Check if it's time to update settings
             if current_time - self.last_fetched_timer_data_from_api >= Config.FETCH_TIMER_DATA_FROM_API_INTERVAL:
                 print("[Timer] Fetching timer data from API")
-                self.__fetch_timer_settings()
+                self._fetch_timer_settings()
                 self.last_fetched_timer_data_from_api = current_time
             
             self._tick()
 
     def _tick(self):
         """Tick the timer"""
-        end_time = self.__get_end_time()
+        end_time = self._get_end_time()
         current_time = utime.localtime()
         current_timestamp = utime.mktime(current_time)
 
@@ -85,16 +85,16 @@ class CountdownTimer:
         })
         time.sleep(1)
 
-    def __update_display(self, time_data):
+    def _update_display(self, time_data):
         self.display.update_time(time_data)
 
-    def __restart_timer(self):
+    def _restart_timer(self):
         """Restart the timer"""
         if self.timer_data and "short_code" in self.timer_data:
             self.api.timer_pressed(self.timer_data["short_code"])
             self.__fetch_timer_settings()
 
-    def __fetch_timer_settings(self):
+    def _fetch_timer_settings(self):
         """
         Fetch timer settings from the online API or local cache.
         Returns True if timer settings were successfully loaded from either source.
@@ -120,11 +120,11 @@ class CountdownTimer:
             print(f"[Timer] No timer found for device {self.device_id}")
             return False
             
-    def __abort_timer(self):
+    def _abort_timer(self):
         """Abort the timer"""
         self.abort = True
 
-    def __get_end_time(self):
+    def _get_end_time(self):
         """Return the start time of the timer. Parsed from the timer data."""
         if self.timer_data and "end_time" in self.timer_data:
             end_time_str = self.timer_data["end_time"]

@@ -13,22 +13,11 @@ class WifiConnection:
         self.wifi_ssid = None 
         self.wifi_pass = None
         self.reconnect_timer = None
-        self.__subscribe()
+        self._subscribe()
 
-    def __subscribe(self):
+    def _subscribe(self):
         event_bus.subscribe(Events.FACTORY_RESET_BUTTON_PRESSED, self.reset)
         event_bus.subscribe(Events.SOFT_RESET_BUTTON_PRESSED, self.reset)
-
-    def reset(self):
-        """Reset the WiFi connection and clear credentials file"""
-        self.disconnect()
-        self.wifi_ssid = None
-        self.wifi_pass = None
-        try:
-            os.remove(self.credentials_file)
-        except:
-            pass
-        event_bus.publish(Events.WIFI_RESET)
 
     def has_saved_credentials(self):
         try:
@@ -61,18 +50,6 @@ class WifiConnection:
         self.load_credentials()
         self.connect()
         self._monitor_connection()
-
-    def _monitor_connection(self):
-        """ Start a periodic timer to check if the WiFi connection is lost and attempt to reconnect """
-        self.reconnect_timer = Timer(1)
-        self.reconnect_timer.init(period=30000, mode=Timer.PERIODIC, callback=self._try_reconnect)
-
-    def _try_reconnect(self, timer):
-        """Attempt to reconnect to WiFi if disconnected"""
-        if not self.is_connected() and self.wifi_ssid and self.wifi_pass:
-            print("[WIFI] Wifi has been disconnected, attempting to reconnect...")
-            if self.connect():
-                event_bus.publish(Events.WIFI_CONNECTED)
 
     def connect(self, ssid=None, password=None):
         if ssid:
@@ -111,6 +88,29 @@ class WifiConnection:
             self.wlan = None
             return False
 
+    def _reset(self):
+        """Reset the WiFi connection and clear credentials file"""
+        self.disconnect()
+        self.wifi_ssid = None
+        self.wifi_pass = None
+        try:
+            os.remove(self.credentials_file)
+        except:
+            pass
+        event_bus.publish(Events.WIFI_RESET)
+
+    def _monitor_connection(self):
+        """ Start a periodic timer to check if the WiFi connection is lost and attempt to reconnect """
+        self.reconnect_timer = Timer(1)
+        self.reconnect_timer.init(period=30000, mode=Timer.PERIODIC, callback=self._try_reconnect)
+
+    def _try_reconnect(self, timer):
+        """Attempt to reconnect to WiFi if disconnected"""
+        if not self._is_connected() and self.wifi_ssid and self.wifi_pass:
+            print("[WIFI] Wifi has been disconnected, attempting to reconnect...")
+            if self.connect():
+                event_bus.publish(Events.WIFI_CONNECTED)
+
     def disconnect(self):
         if self.reconnect_timer:
             self.reconnect_timer.deinit()
@@ -118,6 +118,6 @@ class WifiConnection:
             self.wlan.disconnect()
             self.wlan = None
 
-    def is_connected(self):
+    def _is_connected(self):
         """Check if there is an active WiFi connection"""
         return self.wlan is not None and self.wlan.isconnected()
