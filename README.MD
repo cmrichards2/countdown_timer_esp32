@@ -26,12 +26,13 @@ This is a MicroPython application designed for ESP32 devices that implements a W
 
 1. **WiFi Connection Management**
    - Attempts to connect using stored WiFi credentials if they exist
-   - If connection fails or no credentials exist, enters a Bluetooth pairing mode
+   - If connection fails or no credentials exist, enters a Wifi provisioning mode where the user can provision the device with WiFi credentials via a softAP
    - Credentials are stored persistently in a JSON file
 
 2. **WiFi Provisioning**
    - Allows the user to provision the device with WiFi credentials via a softAP. SoftAP is where the device creates its own WiFi network.
    - The user connects to the softAP using their mobile device and enters the SSID, password and device code through a web page served by the device. The device code is a unique code that the user enters to associate the device with their account - it comes from the online application.
+   - After the user submits the WiFi credentials and device short code, the user must press the button on the device to save the credentials and confirm ownership.
    - The device will then attempt to connect to the WiFi network using the provided credentials
 
 2. **Bluetooth Pairing Mode - currently disabled**
@@ -46,6 +47,8 @@ This is a MicroPython application designed for ESP32 devices that implements a W
    - Maintains local cache of timer data for offline operation
    - Updates countdown in real-time
    - Broadcasts time changes via event system for display and LED updates
+   - When the button is pressed, the timer is reset with a new start time of the current time. The timer will then start counting down from the new start time. This press is also recorded via API so the cloud application can sync the timer state.
+   - It's possible that a user can restart the timer via the online application. If this happens, the device will sync with the new timer state every minute or so.
 
 4. **Visual Feedback**
    - Uses a PWM-controlled LED that fades in/out during pairing mode
@@ -53,7 +56,7 @@ This is a MicroPython application designed for ESP32 devices that implements a W
 
 5. **Factory Reset**
    - Includes a physical button for factory reset functionality
-   - Holding the button for >1 second triggers a factory reset
+   - Holding the button for >3 second triggers a factory reset
    - Reset clears stored WiFi credentials
    - Short button press triggers timer reset events
 
@@ -65,8 +68,10 @@ This is a MicroPython application designed for ESP32 devices that implements a W
 ## Component Breakdown
 
 - `Application`: Main controller class that orchestrates the overall flow
+- `SoftAPProvisioning`: Handles the softAP provisioning mode and the web server for the mobile device to provision the device with WiFi credentials and a short device code
 - `BLEDevice`: Handles BLE communication, device identification, and credential reception
 - `WifiConnection`: Manages WiFi connectivity and credential storage
+- `WifiCredentialHandler`: Handles the reception of WiFi credentials and from the mobile device and the confirmation button tap to save the credentials
 - `CountdownTimer`: Manages timer state and synchronization with online service
 - `API`: Handles communication with the online timer service
 - `LEDController`: Manages LED animations and visual feedback
@@ -75,6 +80,7 @@ This is a MicroPython application designed for ESP32 devices that implements a W
 - `EventBus`: Provides publish-subscribe event system
 - `Config`: Centralizes configuration settings
 - `DeviceID`: Manages unique device identification
+- `TimerDisplay`: Handles the display of the timer on an attached display. Not currently implemented.
 
 ## Current State
 
@@ -96,6 +102,8 @@ The application has the basic infrastructure for WiFi provisioning, but the main
 The ble_advertising.py file is a helper for generating the advertising payload for the ESP32.  It is taken from the MicroPython Bluetooth library and modified to work with the ESP32.
 
 log.txt contains a log of the device running and connecting to the internet.
+
+index.html is not used right now. It shows a proof of concept of sending WiFi credentials over BLE using Web Bluetooth - this file would run on the cloud application and would allow BLE provisioning entirely from the website, without requiring a mobile app.
 
 ## Event bus communication
 
