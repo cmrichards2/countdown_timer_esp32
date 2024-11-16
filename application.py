@@ -65,7 +65,7 @@ class Application:
     def enter_wifi_provisioning_mode(self):
         """
         Enter WiFi provisioning mode using either BLE or SoftAP.
-        In provisioning mode, an external device can connect to the ESP32 and provide WiFi credentials and a short code.
+        In provisioning mode, an external device can connect to the ESP32 and provide WiFi credentials and a device short code.
         """
         if Config.DEFAULT_PROVISIONING_MODE == Config.PROVISIONING_MODE_BLE:
             ble_device = BLEDevice(Config.BLE_NAME_PREFIX, self.try_wifi_credentials)
