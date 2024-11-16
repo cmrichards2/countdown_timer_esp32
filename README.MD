@@ -3,7 +3,7 @@
 This is a smart timer device (esp32) that helps users track and manage time periods. When completed, it will:
 
 - Allow users to perform the initial WiFi provisioning of the hardware device via their mobile phone using a softAP (device local WiFi network)
-- Connect to WiFi to sync with an online account and timer settings
+- Connect to WiFi to sync with an online account and timer settings. Timers can be setup here: https://timer.christopher-richards.net
 - Display a countdown timer that can go into negative time
 - Provide visual feedback through color changes:
   - Glows green as the timer approaches zero
