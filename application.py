@@ -8,6 +8,7 @@ from event_bus import event_bus, Events
 from countdown_timer import CountdownTimer
 from device_id import DeviceID
 from api import API
+from soft_ap_provisioning import SoftAPProvisioning
 import gc
 
 class Application:
@@ -43,15 +44,15 @@ class Application:
 
     def on_button_pressed(self, duration):
         if duration > Config.FACTORY_RESET_DURATION_MS:
-            print("[APP] Button is pressed! Factory reset!")
-            event_bus.publish(Events.FACTORY_RESET_BUTTON_PRESSED)
+            print("[APP] Button is pressed! Factory reset! Entering Bluetooth provisioning mode")
             self.provisioning_mode = Config.PROVISIONING_MODE_BLE
+            event_bus.publish(Events.FACTORY_RESET_BUTTON_PRESSED)
             return
 
         if duration > Config.SOFT_RESET_DURATION_MS:
-            print("[APP] Button is pressed! Soft reset!")
-            event_bus.publish(Events.SOFT_RESET_BUTTON_PRESSED)
+            print("[APP] Button is pressed! Soft reset! Entering SoftAP/Wifi provisioning mode")
             self.provisioning_mode = Config.PROVISIONING_MODE_SOFTAP
+            event_bus.publish(Events.SOFT_RESET_BUTTON_PRESSED)
             return
 
         if duration < Config.BUTTON_TAP_DURATION_MS:
@@ -70,13 +71,12 @@ class Application:
             ble_device = BLEDevice(Config.BLE_NAME_PREFIX, self.try_wifi_credentials)
             ble_device.await_wifi_credentials_then_disconnect()
         else:
-            from soft_ap_provisioning import SoftAPProvisioning
             ap_provisioning = SoftAPProvisioning(self.try_wifi_credentials)
             ap_provisioning.start()
 
     def try_wifi_credentials(self, wifi_ssid, wifi_pass, short_code, notify_wifi_status):
         """
-        Try to connect to WiFi using the provided credentials provided over the bluetooth BLE connection.
+        Try to connect to WiFi using the provided credentials provided over the Wifi connection.
         If the connection is successful and the device registration using the short code is successful,
         the device will be registered and the wifi credentials will be saved.
         
