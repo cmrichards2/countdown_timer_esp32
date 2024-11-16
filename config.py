@@ -1,6 +1,6 @@
 class Config:
     # Development mode
-    DEVELOPMENT_MODE = True
+    DEVELOPMENT_MODE = False
 
     # API settings
     API_BASE_URL = "https://timer.christopher-richards.net" if not DEVELOPMENT_MODE else "https://terrier-arriving-foal.ngrok-free.app"

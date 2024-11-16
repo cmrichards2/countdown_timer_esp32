@@ -94,9 +94,11 @@ This is a MicroPython application designed for ESP32 devices that implements a W
 
 ## Notes
 
+<a href="https://github.com/cmrichards2/countdown_timer_esp32/blob/main/main.py">Main.py</a> is the main entry point for the esp32.
+
 The ble_advertising.py file is a helper for generating the advertising payload for the ESP32.  It is taken from the MicroPython Bluetooth library and modified to work with the ESP32.
 
-log.txt contains a log of the device running and connecting to the internet.
+<a href="https://github.com/cmrichards2/countdown_timer_esp32/blob/main/log.txt">log.txt</a> contains a log of the device running and connecting to the internet.
 
 index.html is not used right now. It shows a proof of concept of sending WiFi credentials over BLE using Web Bluetooth - this file would run on the cloud application and would allow BLE provisioning entirely from the website, without requiring a mobile app.
 
