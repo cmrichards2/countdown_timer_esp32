@@ -29,7 +29,12 @@ This is a MicroPython application designed for ESP32 devices that implements a W
    - If connection fails or no credentials exist, enters a Bluetooth pairing mode
    - Credentials are stored persistently in a JSON file
 
-2. **Bluetooth Pairing Mode**
+2. **WiFi Provisioning**
+   - Allows the user to provision the device with WiFi credentials via a softAP. SoftAP is where the device creates its own WiFi network.
+   - The user connects to the softAP using their mobile device and enters the SSID, password and device code through a web page served by the device. The device code is a unique code that the user enters to associate the device with their account - it comes from the online application.
+   - The device will then attempt to connect to the WiFi network using the provided credentials
+
+2. **Bluetooth Pairing Mode - currently disabled**
    - Advertises itself as a BLE device (default name "ESP32_Device")
    - Waits for a mobile app to connect and send WiFi credentials
    - Provides real-time connection status feedback through BLE notifications
@@ -77,43 +82,20 @@ The application has the basic infrastructure for WiFi provisioning, but the main
 
 ## Todo 
 
-- [] The app should allow the wifi connection to be setup via a bluetooth connection from a mobile device (like the NEST smoke alarm)
-- [] During setup, associate the device with the user in their online account
-- [] Fetch the timer associated with the device online (if one has been associated). The online timer and device timer should always be in sync
+- [x] The app should allow the wifi connection to be setup via a bluetooth connection from a mobile device (like the NEST smoke alarm). Update: not using BLE for provisioning anymore
+- [x] The wifi credentials for this app can can be provisioned via a softAP
+- [x] During setup, associate the device with the user in their online account
+- [x] Fetch the timer associated with the device online (if one has been associated). The online timer and device timer should always be in sync
 - [] Display the timer on the screen - the timer should count down and go below zero
-- [] Allow the user to reset the timer by pressing the button - this will be recorded via the Rails API
+- [x] Allow the user to reset the timer by pressing the button - this will be recorded via the Rails API
 - [] The device will glow green as it approaches zero,  and glow red when it goes past zero
 - [] The device will come alive when a user walks past the device as detected by the motion sensor
-
-
-# Code
-
-The application starts running on the ESP32 from the main.py file
-
-## Deploying the application
-
-To copy the python files to the ESP32 run:
-```
-./deploy.sh
-```
-
-To connect to the ESP32 to view the script running, run:
-```
-mpremote connect /dev/ttyUSB0 
-```
-
-## Running the test connection script
-
-To connect to the ESP32 and send WiFi credentials over bluetooth (BLE), run:
-```
-python3 connect.py
-```
-This simulates what the mobile application would do when the user is first setting up the device.
-
 
 ## Notes
 
 The ble_advertising.py file is a helper for generating the advertising payload for the ESP32.  It is taken from the MicroPython Bluetooth library and modified to work with the ESP32.
+
+log.txt contains a log of the device running and connecting to the internet.
 
 ## Event bus communication
 
@@ -231,6 +213,24 @@ After flashing MicroPython, you can interact with the ESP32 using `mpremote`:
 
 `mpremote connect /dev/ttyUSB0`
 
+## Deploying the application
 
+To copy the python files to the ESP32 run:
+```
+./deploy.sh ; mpremote connect /dev/ttyUSB0
+```
 
+To connect to the ESP32 to view the script running, run:
+```
+mpremote connect /dev/ttyUSB0 
+```
+
+## Running the test connection script
+
+[Bluetooth is not currently the way we want to provision the device. So this script is not currently used and may be out of date]
+To connect to the ESP32 and send WiFi credentials over bluetooth (BLE), run:
+```
+python3 connect.py
+```
+This simulates what the mobile application would do when the user is first setting up the device.
 

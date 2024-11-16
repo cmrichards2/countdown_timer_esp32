@@ -1,0 +1,110 @@
+Connected to MicroPython at /dev/ttyUSB0
+Use Ctrl-] or Ctrl-x to exit this shell
+ets Jul 29 2019 12:21:46
+
+rst:0xc (SW_CPU_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0030,len:4892
+ho 0 tail 12 room 4
+load:0x40078000,len:14896
+load:0x40080400,len:4
+load:0x40080404,len:3372
+entry 0x400805b0
+
+[WIFI] Connecting to WiFi with SSID:  WifiR123 and password: OS-let-neat
+[WIFI] Connected to WiFi: ('192.168.1.63', '255.255.255.0', '192.168.1.1', '192.168.1.1')
+[API] Fetching timer for device C5E7
+[API] URL: https://terr-arriving-foal.ngrok-free.app/api/device/C5E7?device_id=e86bead3caa03866063
+[API] JSON response: {'timer_id': 3, 'end_time': '2024-11-17T10:33:20Z', 'name': 'Ring Mum Timer', 'start_time': '2024-11-16T10:33:20Z'}
+[API] Saving timer data: {'end_time': '2024-11-17T10:33:20Z', 'name': 'Ring Mum Timer', 'start_time': '2024-11-16T10:33:20Z', 'timer_id': 3, 'short_code': 'C5E7'}
+[Timer] Timer loaded for device e86bead3caa03866063
+[Timer] Timer data: {'end_time': '2024-11-17T10:33:20Z', 'name': 'Ring Mum Timer', 'start_time': '2024-11-16T10:33:20Z', 'timer_id': 3, 'short_code': 'C5E7'}
+[Timer] Starting
+[Timer] Fetching timer data from API
+[API] Fetching timer for device C5E7
+[API] URL: https://terr-arriving-foal.ngrok-free.app/api/device/C5E7?device_id=e86bead3caa03866063
+[API] JSON response: {'timer_id': 3, 'end_time': '2024-11-17T10:33:20Z', 'name': 'Ring Mum Timer', 'start_time': '2024-11-16T10:33:20Z'}
+[API] Saving timer data: {'end_time': '2024-11-17T10:33:20Z', 'name': 'Ring Mum Timer', 'start_time': '2024-11-16T10:33:20Z', 'timer_id': 3, 'short_code': 'C5E7'}
+[Timer] Timer loaded for device e86bead3caa03866063
+[Timer] Timer data: {'end_time': '2024-11-17T10:33:20Z', 'name': 'Ring Mum Timer', 'start_time': '2024-11-16T10:33:20Z', 'timer_id': 3, 'short_code': 'C5E7'}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 44, 'minutes': 43}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 43, 'minutes': 43}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 42, 'minutes': 43}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 41, 'minutes': 43}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 40, 'minutes': 43}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 39, 'minutes': 43}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 38, 'minutes': 43}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 37, 'minutes': 43}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 36, 'minutes': 43}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 35, 'minutes': 43}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 34, 'minutes': 43}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 33, 'minutes': 43}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 32, 'minutes': 43}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 31, 'minutes': 43}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 30, 'minutes': 43}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 29, 'minutes': 43}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 28, 'minutes': 43}
+[APP] Button is pressed! Soft reset!
+[Timer] Aborted
+E (26313) wifi:NAN WiFi stop
+[SoftAP] Access Point started. SSID: ESP32_Setup_e86bea
+[SoftAP] Connect to ESP32_Setup_e86bea and visit http://192.168.4.1
+[SoftAP] Web and DNS servers started
+[WIFI] Connecting to WiFi with SSID:  WifiR123 and password: OS-let-nea
+[WIFI] Failed to connect to WiFi
+[SoftAP] Web and DNS servers started
+[WIFI] Connecting to WiFi with SSID:  WifiR123 and password: OS-let-neat
+E (212023) wifi:sta is connecting, return error
+[WIFI] Error connecting to WiFi: Wifi Internal Error
+[SoftAP] Web and DNS servers started
+[WIFI] Connecting to WiFi with SSID:  WifiR123 and password: OS-let-neat
+[WIFI] Connected to WiFi: ('192.168.1.63', '255.255.255.0', '192.168.1.1', '192.168.1.1')
+[API] Saving timer data: {'short_code': 'C5E7'}
+[SoftAP] SoftAP provisioning completed and shut down
+[WIFI] Connecting to WiFi with SSID:  WifiR123 and password: OS-let-neat
+[API] Fetching timer for device C5E7
+[API] URL: https://terr-arriving-foal.ngrok-free.app/api/device/C5E7?device_id=e86bead3caa03866063
+[API] JSON response: {'timer_id': 3, 'end_time': '2024-11-17T10:33:20Z', 'name': 'Ring Mum Timer', 'start_time': '2024-11-16T10:33:20Z'}
+[API] Saving timer data: {'end_time': '2024-11-17T10:33:20Z', 'name': 'Ring Mum Timer', 'start_time': '2024-11-16T10:33:20Z', 'timer_id': 3, 'short_code': 'C5E7'}
+[Timer] Timer loaded for device e86bead3caa03866063
+[Timer] Timer data: {'end_time': '2024-11-17T10:33:20Z', 'name': 'Ring Mum Timer', 'start_time': '2024-11-16T10:33:20Z', 'timer_id': 3, 'short_code': 'C5E7'}
+[Timer] Starting
+[Timer] Fetching timer data from API
+[API] Fetching timer for device C5E7
+[API] URL: https://terr-arriving-foal.ngrok-free.app/api/device/C5E7?device_id=e86bead3caa03866063
+[API] JSON response: {'timer_id': 3, 'end_time': '2024-11-17T10:33:20Z', 'name': 'Ring Mum Timer', 'start_time': '2024-11-16T10:33:20Z'}
+[API] Saving timer data: {'end_time': '2024-11-17T10:33:20Z', 'name': 'Ring Mum Timer', 'start_time': '2024-11-16T10:33:20Z', 'timer_id': 3, 'short_code': 'C5E7'}
+[Timer] Timer loaded for device e86bead3caa03866063
+[Timer] Timer data: {'end_time': '2024-11-17T10:33:20Z', 'name': 'Ring Mum Timer', 'start_time': '2024-11-16T10:33:20Z', 'timer_id': 3, 'short_code': 'C5E7'}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 44, 'minutes': 39}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 43, 'minutes': 39}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 42, 'minutes': 39}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 41, 'minutes': 39}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 40, 'minutes': 39}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 39, 'minutes': 39}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 38, 'minutes': 39}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 37, 'minutes': 39}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 36, 'minutes': 39}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 35, 'minutes': 39}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 34, 'minutes': 39}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 33, 'minutes': 39}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 32, 'minutes': 39}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 31, 'minutes': 39}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 30, 'minutes': 39}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 29, 'minutes': 39}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 28, 'minutes': 39}
+[API] Timer pressed for C5E7
+[API] URL: https://terr-arriving-foal.ngrok-free.app/api/device/restart/C5E7
+[API] Response: {"success":true}
+[API] Fetching timer for device C5E7
+[API] URL: https://terr-arriving-foal.ngrok-free.app/api/device/C5E7?device_id=e86bead3caa03866063
+[API] JSON response: {'timer_id': 3, 'end_time': '2024-11-17T10:53:54Z', 'name': 'Ring Mum Timer', 'start_time': '2024-11-16T10:53:54Z'}
+[API] Saving timer data: {'end_time': '2024-11-17T10:53:54Z', 'name': 'Ring Mum Timer', 'start_time': '2024-11-16T10:53:54Z', 'timer_id': 3, 'short_code': 'C5E7'}
+[Timer] Timer loaded for device e86bead3caa03866063
+[Timer] Timer data: {'end_time': '2024-11-17T10:53:54Z', 'name': 'Ring Mum Timer', 'start_time': '2024-11-16T10:53:54Z', 'timer_id': 3, 'short_code': 'C5E7'}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 59, 'minutes': 59}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 58, 'minutes': 59}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 57, 'minutes': 59}
+[DISPLAY] Time left: {'type': 'until', 'hours': 23, 'days': 0, 'seconds': 56, 'minutes': 59}

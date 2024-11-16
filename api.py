@@ -1,4 +1,4 @@
-from request import get, post
+from urequests import get, post
 import json
 import utime
 import time
@@ -50,7 +50,7 @@ class API:
             url = f"{self.base_url}/api/device/restart/{short_code.upper()}"
             print(f"[API] URL: {url}")
             response = get(url)
-            print(f"Response: {response.text}")
+            print(f"[API] Response: {response.text}")
             
         except Exception as e:
             print(f"[API] Error handling timer press: {e}")
@@ -114,6 +114,10 @@ class API:
         """
         Fetch timer details from the API for the given device ID.
         First syncs any offline presses if there's a connection.
+
+        Example JSON response from API:
+
+        {"timer_id":1,"name":"Tablet Reminder","start_time":"2024-11-16T09:44:50Z","end_time":"2024-11-17T05:44:50Z"}
         """
         print(f"[API] Fetching timer for device {short_code}")
         if not self._sync_time():
@@ -155,11 +159,6 @@ class API:
             print(f"[API] Failed to sync time: {e}")
             return False
     
-    def __full_url(self, device_id):
-        return "https://timer.christopher-richards.net/api/device/2c0a9af10ef918efb6ac98bf452549f7"
-        # return "https://run.mocky.io/v3/5a483c3b-3e68-4a5c-80d0-9dcf41343b2d"
-        # return f"{self.base_url}/{path}/{device_id}"
-        
     def save_timer_data(self, timer_data, preserve_token=False):
         """
         Store timer data in local cache file

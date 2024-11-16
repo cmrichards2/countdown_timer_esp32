@@ -70,7 +70,7 @@ class WifiConnection:
     def _try_reconnect(self, timer):
         """Attempt to reconnect to WiFi if disconnected"""
         if not self.is_connected() and self.wifi_ssid and self.wifi_pass:
-            print("Wifi has been disconnected, attempting to reconnect...")
+            print("[WIFI] Wifi has been disconnected, attempting to reconnect...")
             if self.connect():
                 event_bus.publish(Events.WIFI_CONNECTED)
 
@@ -82,7 +82,7 @@ class WifiConnection:
         if not self.wifi_ssid or not self.wifi_pass:
             return False
 
-        print(f"Connecting to WiFi with SSID: {self.wifi_ssid} and password: {self.wifi_pass}")
+        print(f"[WIFI] Connecting to WiFi with SSID: {self.wifi_ssid} and password: {self.wifi_pass}")
 
         if self.wlan and self.wlan.isconnected():
             return True
@@ -99,15 +99,15 @@ class WifiConnection:
                 retry_count += 1
             
             if self.wlan.isconnected():
-                print("Connected to WiFi:", self.wlan.ifconfig())
+                print(f"[WIFI] Connected to WiFi: {self.wlan.ifconfig()}")
                 event_bus.publish(Events.WIFI_CONNECTED)
                 return True
             else:
-                print("Failed to connect to WiFi")
+                print("[WIFI] Failed to connect to WiFi")
                 self.wlan = None
                 return False
         except Exception as e:
-            print(f"Error connecting to WiFi: {e}")
+            print(f"[WIFI] Error connecting to WiFi: {e}")
             self.wlan = None
             return False
 

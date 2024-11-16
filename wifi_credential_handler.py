@@ -23,7 +23,7 @@ class WifiCredentialHandler:
         Args:
             credentials_str (str): String in format "ssid|password"
         """
-        print("Received credentials. Waiting for button tap confirmation...")
+        print(f"[CREDENTIALS] Received credentials. Waiting for button tap confirmation...")
         self.notify_status(b"WAITING_CONFIRMATION")
         
         self.pending_credentials = credentials_str
@@ -51,13 +51,13 @@ class WifiCredentialHandler:
         if not self._can_process_button_tap():
             return False
             
-        print("Button tapped - processing credentials")
+        print(f"[CREDENTIALS] Button tapped - processing credentials")
         creds = self._parse_credentials()
         if not creds:
             return False
             
         ssid, password = creds
-        print(f"SSID: {ssid}, Password: {password}")
+        print(f"[CREDENTIALS] SSID: {ssid}, Password: {password}")
         
         success = wifi_connection_callback(ssid, password, self.notify_status)
         self._reset_state()
@@ -71,11 +71,11 @@ class WifiCredentialHandler:
             bool: True if credentials can be processed, False otherwise
         """
         if not self.waiting_for_button or not self.pending_credentials:
-            print("No pending credentials or not waiting for button confirmation")
+            print(f"[CREDENTIALS] No pending credentials or not waiting for button confirmation")
             return False
             
         if time.ticks_diff(time.ticks_ms(), self.confirmation_start_time) > Config.PROVISIONING_BUTTON_CONFIRMATION_DURATION_MS:
-            print("Confirmation timeout - credentials rejected")
+            print(f"[CREDENTIALS] Confirmation timeout - credentials rejected")
             self.notify_status(b"TIMEOUT")
             self._reset_state()
             return False

@@ -43,13 +43,13 @@ class Application:
 
     def on_button_pressed(self, duration):
         if duration > Config.FACTORY_RESET_DURATION_MS:
-            print("Button is pressed! Factory reset!")
+            print("[APP] Button is pressed! Factory reset!")
             event_bus.publish(Events.FACTORY_RESET_BUTTON_PRESSED)
             self.provisioning_mode = Config.PROVISIONING_MODE_BLE
             return
 
         if duration > Config.SOFT_RESET_DURATION_MS:
-            print("Button is pressed! Soft reset!")
+            print("[APP] Button is pressed! Soft reset!")
             event_bus.publish(Events.SOFT_RESET_BUTTON_PRESSED)
             self.provisioning_mode = Config.PROVISIONING_MODE_SOFTAP
             return

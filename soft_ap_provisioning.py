@@ -40,8 +40,8 @@ class SoftAPProvisioning:
         """Configure and start the access point"""
         self.ap.active(True)
         self.ap.config(essid=self.ssid)
-        print(f"Access Point started. SSID: {self.ssid}")
-        print(f"Connect to {self.ssid} and visit http://192.168.4.1")
+        print(f"[SoftAP] Access Point started. SSID: {self.ssid}")
+        print(f"[SoftAP] Connect to {self.ssid} and visit http://192.168.4.1")
 
     def _start_web_server(self):
         """Start the web server and DNS server for the captive portal"""
@@ -53,7 +53,7 @@ class SoftAPProvisioning:
         self.dns_server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.dns_server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.dns_server.bind(('0.0.0.0', 53))
-        print("Web and DNS servers started")
+        print("[SoftAP] Web and DNS servers started")
 
     def await_credentials_then_disconnect(self):
         """Wait for WiFi credentials to be submitted, then shut down AP mode"""
@@ -80,7 +80,7 @@ class SoftAPProvisioning:
         time.sleep(1)  # Give it time to clean up
         
         event_bus.publish(Events.EXITING_PAIRING_MODE)
-        print("SoftAP provisioning completed and shut down")
+        print("[SoftAP] SoftAP provisioning completed and shut down")
 
     def _handle_web_client(self):
         """Handle incoming web requests"""
@@ -105,7 +105,7 @@ class SoftAPProvisioning:
             client.close()
             
         except Exception as e:
-            print(f"Error handling web client: {e}")
+            print(f"[SoftAP] Error handling web client: {e}")
             sys.print_exception(e)
 
     def _handle_dns_request(self):
@@ -130,7 +130,7 @@ class SoftAPProvisioning:
             )
             self.dns_server.sendto(response, addr)
         except Exception as e:
-            print(f"Error handling DNS request: {e}")
+            print(f"[SoftAP] Error handling DNS request: {e}")
 
     def _parse_credentials(self, post_data):
         """Parse the POST data to extract WiFi credentials"""
@@ -251,7 +251,7 @@ class SoftAPProvisioning:
                     </div>
                     <div class="form-group">
                         <label for="password">WiFi Password</label>
-                        <input type="password" id="password" name="password" placeholder="Enter WiFi password" required value="ACRES-let-neat">
+                        <input type="password" id="password" name="password" placeholder="Enter WiFi password" required value="ACRES-let-nea">
                     </div>
                     <button type="submit">Connect</button>
                 </form>
