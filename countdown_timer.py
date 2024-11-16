@@ -34,8 +34,8 @@ class CountdownTimer:
                 break
 
             if not self.timer_data or "end_time" not in self.timer_data:
-                # Attempt to fetch timer settings from API every minute if no timer data is
-                # associated with this device
+                # Attempt to fetch timer settings from API every minute if we have 
+                # never managed to successfully load timer data from the API
                 self.__fetch_timer_settings()
                 time.sleep(60)
             

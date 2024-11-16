@@ -165,3 +165,72 @@ The following events are currently published and handled in the application:
      - `WifiConnection.connect`
      - `WifiConnection._try_reconnect`
    - Currently no handlers
+
+# ESP 32 Setup Information (Ubuntu)
+
+Verify that the ESP32 is connected:
+
+```
+ls /dev/ttyUSB*
+```
+
+## Ubuntu Setup
+
+```
+sudo apt update
+sudo apt install git wget flex bison gperf python3 python3-pip python3-setuptools cmake ninja-build ccache libffi-dev libssl-dev dfu-util
+sudo apt install python3.10-venv
+```
+
+## Install ESP-IDF
+
+```
+mkdir -p ~/esp
+cd ~/esp
+git clone --recursive https://github.com/espressif/esp-idf.git
+cd esp-idf
+./install.sh
+```
+
+```
+Also run this on new terminals when pushing new code to the device:
+setup environment variables:
+. $HOME/esp/esp-idf/export.sh
+```
+
+```
+/esp-idf/tools/idf.py
+idf.py set-target esp32 
+idf.py menuconfig
+```
+
+## Flashing the device
+
+```
+Erase flash:
+esptool.py --port /dev/ttyUSB0 erase_flash
+```
+
+## Flashing with micro python firmware
+
+Download: https://micropython.org/download/ESP32_GENERIC/
+```
+pip install esptool
+esptool.py --chip esp32 --port /dev/ttyUSB0 write_flash -z 0x1000 ESP32_GENERIC-20241025-v1.24.0.bin 
+```
+
+After flashing MicroPython, you can interact with the ESP32 using `mpremote`:
+
+**Install `mpremote`**:
+
+```
+`pip install mpremote`
+```
+
+**Connect to the ESP32**:
+
+`mpremote connect /dev/ttyUSB0`
+
+
+
+
