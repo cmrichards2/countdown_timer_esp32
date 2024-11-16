@@ -1,6 +1,6 @@
 # Timer Device Application
 
-This is a smart timer device that helps users track and manage time periods. When completed, it will:
+This is a smart timer device (esp32) that helps users track and manage time periods. When completed, it will:
 
 - Allow users to perform the initial WiFi provisioning of the hardware device via their mobile phone using a softAP (device local WiFi network)
 - Connect to WiFi to sync with an online account and timer settings
@@ -14,9 +14,18 @@ This is a smart timer device that helps users track and manage time periods. Whe
 - Associate each device with a user's online account during setup
 - Use an external Real-Time Clock (RTC) Module to keep the timer in sync with the online service
 
-# Notes:
+## Todo 
 
-- Could use WifiManager for WiFi provisioning: https://github.com/tzapu/WiFiManager ?
+- [x] The app should allow the wifi connection to be setup via a bluetooth connection from a mobile device (like the NEST smoke alarm). Update: not using BLE for provisioning anymore
+- [x] The wifi credentials for this app can can be provisioned via a softAP
+- [x] During setup, associate the device with the user in their online account
+- [x] Fetch the timer associated with the device online (if one has been associated). The online timer and device timer should always be in sync
+- [ ] Display the timer on the screen - the timer should count down and go below zero
+- [x] Allow the user to reset the timer by pressing the button - this will be recorded via the Rails API
+- [ ] The device will glow green as it approaches zero,  and glow red when it goes past zero
+- [ ] The device will come alive when a user walks past the device as detected by the motion sensor
+- [ ] Add a real time clock device for accurate timekeeping
+- [ ] Add a motion sensor for detecting when a user is walking past the device - this will wakeup the screen, show the timer and glow the device if required
 
 # Application Overview
 
@@ -82,22 +91,6 @@ This is a MicroPython application designed for ESP32 devices that implements a W
 - `DeviceID`: Manages unique device identification
 - `TimerDisplay`: Handles the display of the timer on an attached display. Not currently implemented.
 
-## Current State
-
-The application has the basic infrastructure for WiFi provisioning, but the main application logic is still a placeholder.
-
-## Todo 
-
-- [x] The app should allow the wifi connection to be setup via a bluetooth connection from a mobile device (like the NEST smoke alarm). Update: not using BLE for provisioning anymore
-- [x] The wifi credentials for this app can can be provisioned via a softAP
-- [x] During setup, associate the device with the user in their online account
-- [x] Fetch the timer associated with the device online (if one has been associated). The online timer and device timer should always be in sync
-- [ ] Display the timer on the screen - the timer should count down and go below zero
-- [x] Allow the user to reset the timer by pressing the button - this will be recorded via the Rails API
-- [ ] The device will glow green as it approaches zero,  and glow red when it goes past zero
-- [ ] The device will come alive when a user walks past the device as detected by the motion sensor
-- [ ] Add a real time clock device for accurate timekeeping
-- [ ] Add a motion sensor for detecting when a user is walking past the device - this will wakeup the screen, show the timer and glow the device if required
 
 ## Notes
 
