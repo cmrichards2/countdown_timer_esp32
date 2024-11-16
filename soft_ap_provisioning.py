@@ -1,5 +1,6 @@
 import network
 import socket
+import sys
 import json
 import select
 import time
@@ -10,12 +11,22 @@ from event_bus import event_bus, Events
 class SoftAPProvisioning:
     def __init__(self, handle_wifi_credentials):
         self.handle_wifi_credentials = handle_wifi_credentials
+        # First deactivate any existing WiFi interfaces
+        sta_if = network.WLAN(network.STA_IF)
+        sta_if.active(False)
+        
         self.ap = network.WLAN(network.AP_IF)
+        self.ap.active(False)  # Deactivate AP interface first
+        time.sleep(1)  # Give it a moment to clean up
+        
         self.web_server = None
         self.dns_server = None
         self.ssid = f"ESP32_Setup_{DeviceID.get_id()[:6]}"
         self.connected = False
         event_bus.publish(Events.ENTERING_PAIRING_MODE)
+        
+        # Now configure and activate AP
+        self.ap.active(True)
         self.ap.config(essid=self.ssid, authmode=network.AUTH_OPEN)
         self.ap.ifconfig(('192.168.4.1', '255.255.255.0', '192.168.4.1', '192.168.4.1'))
 
@@ -57,6 +68,20 @@ class SoftAPProvisioning:
 
         self.disconnect()
 
+    def disconnect(self):
+        """Clean up and shut down AP mode"""
+        if self.web_server:
+            self.web_server.close()
+        if self.dns_server:
+            self.dns_server.close()
+        
+        # Make sure to deactivate AP
+        self.ap.active(False)
+        time.sleep(1)  # Give it time to clean up
+        
+        event_bus.publish(Events.EXITING_PAIRING_MODE)
+        print("SoftAP provisioning completed and shut down")
+
     def _handle_web_client(self):
         """Handle incoming web requests"""
         try:
@@ -81,6 +106,7 @@ class SoftAPProvisioning:
             
         except Exception as e:
             print(f"Error handling web client: {e}")
+            sys.print_exception(e)
 
     def _handle_dns_request(self):
         """Handle DNS queries with a redirect to our IP"""
@@ -115,26 +141,37 @@ class SoftAPProvisioning:
                 params[key] = value.replace("+", " ")
             return {
                 "ssid": params.get("ssid", ""),
-                "password": params.get("password", "")
+                "password": params.get("password", ""),
+                "setup_code": params.get("setup_code", "")
             }
         except:
             return None
 
     def _try_connection(self, credentials, client):
         """Attempt to connect to WiFi with provided credentials"""
+        # Close the servers temporarily before making the API call
+        self.web_server.close()
+        self.dns_server.close()
+        time.sleep(1)  # Give time for sockets to close properly
+        
         # Pass an empty callback since we'll show the result page instead
         success = self.handle_wifi_credentials(
             credentials["ssid"],
             credentials["password"],
+            credentials["setup_code"],
             lambda status: None  # Empty callback
         )
         
-        if success:
-            self._serve_success_page(client)
-        else:
+        # Reopen the servers if connection failed
+        if not success:
+            self._start_web_server()
             self._serve_error_page(client)
+        else:
+            self._serve_success_page(client)
+        
         time.sleep(2)
         return success
+
 
     def _serve_success_page(self, client):
         """Serve a success page when WiFi connection is established"""
@@ -145,16 +182,16 @@ class SoftAPProvisioning:
             <title>WiFi Connected</title>
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <style>
-                body {{ font-family: Arial, sans-serif; margin: 20px; }}
-                .container {{ max-width: 400px; margin: 0 auto; text-align: center; }}
-                .success {{ color: #28a745; }}
+                {self._get_common_styles()}
             </style>
         </head>
         <body>
             <div class="container">
                 <h1 class="success">Successfully Connected!</h1>
-                <p>Your device is now connected to WiFi.</p>
-                <p>You can close this page.</p>
+                <p class="message">
+                    Your device is now connected to WiFi.<br>
+                    You can close this page and start using your device.
+                </p>
             </div>
         </body>
         </html>
@@ -171,16 +208,13 @@ class SoftAPProvisioning:
             <title>Connection Failed</title>
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <style>
-                body {{ font-family: Arial, sans-serif; margin: 20px; }}
-                .container {{ max-width: 400px; margin: 0 auto; text-align: center; }}
-                .error {{ color: #dc3545; }}
-                button {{ width: 200px; padding: 10px; background: #007bff; color: white; border: none; }}
+                {self._get_common_styles()}
             </style>
         </head>
         <body>
             <div class="container">
                 <h1 class="error">Connection Failed</h1>
-                <p>Unable to connect to the WiFi network. Please check your credentials.</p>
+                <p class="message">Unable to connect to the WiFi network.<br>Please check your credentials.</p>
                 <button onclick="window.history.back()">Try Again</button>
             </div>
         </body>
@@ -198,49 +232,132 @@ class SoftAPProvisioning:
             <title>ESP32 WiFi Setup</title>
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <style>
-                body {{ font-family: Arial, sans-serif; margin: 20px; }}
-                .container {{ max-width: 400px; margin: 0 auto; }}
-                form {{ width: 100%; box-sizing: border-box; }}
-                input {{ 
-                    width: 100%;
-                    padding: 8px;
-                    margin: 10px 0;
-                    box-sizing: border-box;
-                }}
-                button {{ 
-                    width: 100%;
-                    padding: 10px;
-                    background: #007bff;
-                    color: white;
-                    border: none;
-                    box-sizing: border-box;
-                    border-radius: 10px;
-                }}
-                h1 {{ text-align: center; }}
+                {self._get_common_styles()}
             </style>
         </head>
         <body>
             <div class="container">
-                <h1>ESP32 WiFi Setup</h1>
+                <h1>Connect <span class="device-name">{self.ssid}</span> to WiFi</h1>
                 <form method="POST" action="/configure">
-                    <input type="text" name="ssid" placeholder="WiFi Name" required>
-                    <input type="password" name="password" placeholder="WiFi Password" required>
+                    <div class="form-group">
+                        <label for="setup-code">Device Setup Code</label>
+                        <input type="text" id="setup-code" name="setup_code" 
+                               class="setup-code" maxlength="4" 
+                               placeholder="Enter 4-character code" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ssid">WiFi Network Name</label>
+                        <input type="text" id="ssid" name="ssid" placeholder="Enter WiFi name" required value="Nest Router">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">WiFi Password</label>
+                        <input type="password" id="password" name="password" placeholder="Enter WiFi password" required value="ACRES-let-neat">
+                    </div>
                     <button type="submit">Connect</button>
                 </form>
-                <div id="status"></div>
             </div>
         </body>
         </html>
         """
         response = f"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n{html}"
         client.send(response.encode())
-
-    def disconnect(self):
-        """Clean up and shut down AP mode"""
-        if self.web_server:
-            self.web_server.close()
-        if self.dns_server:
-            self.dns_server.close()
-        self.ap.active(False)
-        event_bus.publish(Events.EXITING_PAIRING_MODE)
-        print("SoftAP provisioning completed and shut down") 
+    def _get_common_styles(self):
+        """Return common CSS styles used across all pages"""
+        return """
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background: #f5f5f7;
+                color: #1d1d1f;
+            }
+            .container {
+                max-width: 400px;
+                margin: 0 auto;
+                background: white;
+                padding: 25px;
+                border-radius: 15px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+            h1 {
+                text-align: center;
+                margin-bottom: 25px;
+                font-size: 24px;
+                font-weight: 600;
+            }
+            input {
+                width: 100%;
+                padding: 12px;
+                margin: 10px 0;
+                border: 1px solid #d2d2d7;
+                border-radius: 8px;
+                box-sizing: border-box;
+                font-size: 16px;
+                transition: border-color 0.2s;
+            }
+            input:focus {
+                outline: none;
+                border-color: #0071e3;
+            }
+            button {
+                width: 100%;
+                padding: 12px;
+                background: #0071e3;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+            button:hover {
+                background: #0077ED;
+            }
+            .success {
+                color: #28a745;
+            }
+            .error {
+                color: #dc3545;
+            }
+            .success-icon {
+                font-size: 48px;
+                margin-bottom: 20px;
+            }
+            .message {
+                text-align: center;
+                line-height: 1.5;
+            }
+            .error-icon {
+                font-size: 48px;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+            .message {
+                text-align: center;
+                line-height: 1.5;
+                margin-bottom: 20px;
+            }
+            .form-group {
+                margin-bottom: 15px;
+            }
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: 500;
+            }
+            .device-name {
+                color: #0071e3;
+                font-weight: 600;
+            }
+            .setup-code {
+                font-size: 24px;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+                text-align: center;
+            }
+            .setup-code::-webkit-input-placeholder {
+                font-size: 16px;
+                letter-spacing: normal;
+            }
+        """

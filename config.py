@@ -1,4 +1,10 @@
 class Config:
+    # Development mode
+    DEVELOPMENT_MODE = True
+
+    # API settings
+    API_BASE_URL = "https://timer.christopher-richards.net" if not DEVELOPMENT_MODE else "https://terrier-arriving-foal.ngrok-free.app"
+    
     # WiFi settings
     WIFI_RETRY_COUNT = 10
     WIFI_RETRY_DELAY_SEC = 1
@@ -31,9 +37,9 @@ class Config:
     LED_PWM_FREQ = 1000
     
     # Button settings
-    FACTORY_RESET_DURATION_MS = 10000 
-    SOFT_RESET_DURATION_MS = 2000
-    BUTTON_TAP_DURATION_MS = 200
+    FACTORY_RESET_DURATION_MS = 6000 
+    SOFT_RESET_DURATION_MS = 3000
+    BUTTON_TAP_DURATION_MS = 1000
 
     # SoftAP settings
     SOFTAP_IP = "192.168.4.1"
@@ -43,3 +49,6 @@ class Config:
     PROVISIONING_MODE_BLE = "ble"
     PROVISIONING_MODE_SOFTAP = "softap"
     DEFAULT_PROVISIONING_MODE = PROVISIONING_MODE_SOFTAP
+
+    # Add new setting for offline presses file
+    OFFLINE_PRESSES_FILE = "offline_presses.json"
