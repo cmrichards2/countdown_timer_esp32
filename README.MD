@@ -2,7 +2,7 @@
 
 This is a smart timer device that helps users track and manage time periods. When completed, it will:
 
-- Allow users to perform the initial setup of the hardware device via their mobile phone using Bluetooth
+- Allow users to perform the initial WiFi provisioning of the hardware device via their mobile phone using a softAP (device local WiFi network)
 - Connect to WiFi to sync with an online account and timer settings
 - Display a countdown timer that can go into negative time
 - Provide visual feedback through color changes:
@@ -96,6 +96,7 @@ The application has the basic infrastructure for WiFi provisioning, but the main
 - [x] Allow the user to reset the timer by pressing the button - this will be recorded via the Rails API
 - [] The device will glow green as it approaches zero,  and glow red when it goes past zero
 - [] The device will come alive when a user walks past the device as detected by the motion sensor
+- [] Add a real time clock device for accurate timekeeping
 
 ## Notes
 
