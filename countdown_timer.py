@@ -113,8 +113,7 @@ class CountdownTimer:
             self.timer_data = self.api.get_cached_timer()
             
         if self.timer_data:
-            print(f"[Timer] Timer loaded for device {self.device_id}")
-            print(f"[Timer] Timer data: {self.timer_data}")
+            print(f"[Timer] Timer loaded for device {self.device_id}: {self.timer_data}")
             return True
         else:
             print(f"[Timer] No timer found for device {self.device_id}")
