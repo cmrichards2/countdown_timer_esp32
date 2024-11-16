@@ -16,8 +16,8 @@ class WifiConnection:
         self._subscribe()
 
     def _subscribe(self):
-        event_bus.subscribe(Events.FACTORY_RESET_BUTTON_PRESSED, self.reset)
-        event_bus.subscribe(Events.SOFT_RESET_BUTTON_PRESSED, self.reset)
+        event_bus.subscribe(Events.FACTORY_RESET_BUTTON_PRESSED, self._reset)
+        event_bus.subscribe(Events.SOFT_RESET_BUTTON_PRESSED, self._reset)
 
     def has_saved_credentials(self):
         try:

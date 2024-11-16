@@ -41,7 +41,7 @@ class CountdownTimer:
 
             if self.abort:
                 print("[Timer] Aborted")
-                self.__unsubscribe()
+                self._unsubscribe()
                 break
             
             if "end_time" not in self.timer_data:
@@ -92,7 +92,7 @@ class CountdownTimer:
         """Restart the timer"""
         if self.timer_data and "short_code" in self.timer_data:
             self.api.timer_pressed(self.timer_data["short_code"])
-            self.__fetch_timer_settings()
+            self._fetch_timer_settings()
 
     def _fetch_timer_settings(self):
         """
