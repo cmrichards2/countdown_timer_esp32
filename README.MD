@@ -239,3 +239,10 @@ python3 connect.py
 ```
 This simulates what the mobile application would do when the user is first setting up the device.
 
+## Guide for setting up esp32 with MicroPython
+
+https://github.com/Vovaman/start_ESP32_with_micropython
+
+## Websockets...
+
+https://pypi.org/project/micropython-async-websocket-client/

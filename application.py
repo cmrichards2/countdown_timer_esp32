@@ -10,6 +10,7 @@ from device_id import DeviceID
 from api import API
 from soft_ap_provisioning import SoftAPProvisioning
 import gc
+from memory import print_memory_usage
 
 class Application:
     """
@@ -25,7 +26,7 @@ class Application:
     
     def _subscribe(self):
         event_bus.subscribe(Events.FACTORY_RESET_BUTTON_PRESSED, self._factory_reset)
-    
+
     def start(self):
         """
         Main entry point that handles the application's connection flow:
@@ -35,6 +36,7 @@ class Application:
         3. If no credentials exist, enter provisioning mode
         """
         while True:
+            print_memory_usage()
             if self.wifi.has_saved_credentials():
                 self.wifi.connect_and_monitor_connection()
                 self._start_countdown_timer()
@@ -67,12 +69,16 @@ class Application:
         Enter WiFi provisioning mode using either BLE or SoftAP.
         In provisioning mode, an external device can connect to the ESP32 and provide WiFi credentials and a device short code.
         """
-        if Config.DEFAULT_PROVISIONING_MODE == Config.PROVISIONING_MODE_BLE:
+        if self.provisioning_mode == Config.PROVISIONING_MODE_BLE:
+            # Start provisioning over bluetooth
             ble_device = BLEDevice(Config.BLE_NAME_PREFIX, self._try_wifi_credentials)
             ble_device.await_wifi_credentials_then_disconnect()
-        else:
+        elif self.provisioning_mode == Config.PROVISIONING_MODE_SOFTAP:
+            # Start provisioning over SoftAP (WiFi)
             ap_provisioning = SoftAPProvisioning(self._try_wifi_credentials)
             ap_provisioning.start()
+        else:
+            raise Exception("Invalid provisioning mode")
 
     def _try_wifi_credentials(self, wifi_ssid, wifi_pass, short_code, notify_wifi_status):
         """

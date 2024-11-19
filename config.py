@@ -5,6 +5,7 @@ class Config:
     # API settings
     API_BASE_URL = "https://timer.christopher-richards.net" if not DEVELOPMENT_MODE else "https://terrier-arriving-foal.ngrok-free.app"
     FETCH_TIMER_DATA_FROM_API_INTERVAL = 60
+    WEBSOCKET_URI = "wss://timer.christopher-richards.net/cable" if not DEVELOPMENT_MODE else "wss://terrier-arriving-foal.ngrok-free.app/cable"
     
     # WiFi settings
     WIFI_RETRY_COUNT = 10

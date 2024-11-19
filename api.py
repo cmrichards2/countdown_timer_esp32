@@ -6,6 +6,7 @@ import os
 import sys
 from config import Config
 import ntptime
+from memory import print_memory_usage
 
 class API:
     def __init__(self):
@@ -80,6 +81,7 @@ class API:
 
     def _sync_offline_presses(self, short_code):
         """Sync any stored offline presses with the API"""
+        return
         try:
             if not os.stat(self.offline_presses_file):
                 return
@@ -145,6 +147,8 @@ class API:
                 
         except Exception as e:
             print(f"[API] Error fetching timer data: {e}")
+            sys.print_exception(e)
+            print_memory_usage()
             return None
     
     def _sync_time(self):
